@@ -5,17 +5,43 @@
         <script type="text/javascript" src="https://github.com/lrvick/kral-js/raw/master/kral.js"></script> 
         <script type="text/javascript">
             $(document).ready(function() {
-                    identica(query,'#stream');
-                    twitter(query,'#stream');
-                    facebook(query,'#stream');
+                $('#search').bind("click",function(){
+                    query=$('#query').val();
+                    identica(query,'#statuses');
+                    twitter(query,'#statuses');
+                    facebook(query,'#statuses');
+                    reddit(query,'#links');
+                    flickr(query,'#images');
                 });
             });
         </script> 
+        <style>
+            header {
+                display:block;
+                width:100%;
+            }
+            .stream{
+                height:200px;
+                width:45%;
+                overflow-y:scroll;
+                float:left;
+            }
+            #images img {
+            width:120px;
+            height:120px;
+            float:left;
+            }
+        </style>
     </head>
     <body>
+        <header>
         <p>Currently pulls data from: Facebook, Twitter, Identica, Buzz, Flickr, Wordpress, Youtube, Reddit</p>
         <input id="query" type="text" />
         <button id="search">search</button>
-        <div id='stream'></div>
+        </header>
+        <div class='stream' id='statuses'></div>
+        <div class='stream' id='links'></div>
+        <div class='stream' id='images'></div>
     </body>
 </html>
+
