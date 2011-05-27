@@ -17,7 +17,6 @@
                 $.getJSON('http://www.reddit.com/search.json?q=' + query + '&jsonp=?', function(data) {
                     $('<h2>Reddit</h2><hr>').appendTo($('body')).show('slow')
                     $.each(data.data.children, function(i,item){
-                    console.log(item.data)
                         $('<p>'+ item.data.author + ' : <a href="http://reddit.com' + item.data.permalink+'">' + item.data.title + '</a></p>').hide().appendTo($('body')).show('slow')
                     });
                 });
@@ -33,8 +32,7 @@
                         $('<p>'+ this.from_user + ' : ' + this.text + '</p>').hide().appendTo($('body')).show('slow')                    
                     });                
                 });                
-                $.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D' + query + '%26f%3Djson&_callback=?', function(data){                    
-                    $('<h2>Wordpress</h2><hr>').appendTo($('body')).show('slow')
+                $.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D' + query + '%26f%3Djson&_callback=?', function(data){                                  $('<h2>Wordpress</h2><hr>').appendTo($('body')).show('slow')
                     $.each(data.value.items, function(i,item) {
                         $('<p>'+ item.author + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
                     });
@@ -45,13 +43,19 @@
                         $("<iframe width='220' height='150' src='http://www.youtube.com/embed/" + item.id + "' frameborder='0' type='text/html'></iframe>").appendTo($('body')).show('slow')
                     });
                 });
+                $.getJSON('https://www.googleapis.com/buzz/v1/activities/search?q='+query+'&alt=json&callback=?',function(data) {
+                    $('<h2>Buzz</h2><hr>').appendTo($('body')).show('slow')
+                    $.each(data.data.items, function(i,item) {
+                        $('<p>'+ item.actor.name + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
+                    });
+                });
             });
         });
     </script> 
 </head>
 <body>
 <div id="input">
-    <p>Currently pulls data from: Facebook, Twitter, Flickr ,Wordpress, Youtube, Reddit</p>
+    <p>Currently pulls data from: Facebook, Twitter, Buzz, Flickr ,Wordpress, Youtube, Reddit</p>
     <input id="query" type="text" />
     <button id="search">search</button>
 </div>
