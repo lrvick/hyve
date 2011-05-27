@@ -1,69 +1,107 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> 
-    <script type="text/javascript">
-        $(document).ready(function() {    
-            $('#search').bind("click",function(){
-                query=$('#query').val();
-                $.getJSON('https://graph.facebook.com/search?q=' + query + '&type=post&callback=?', function(data) {
-                    $('<h2>Facebook</h2><hr>').appendTo($('body')).show('slow')
-                    $.each(data['data'], function(i,item){
-                        if (item['message'] != undefined){
-                            $('<p>'+ item['from']['name'] + ' : ' + item['message'] + '</p>').hide().appendTo($('body')).show('slow')
-                        }
-                    });
-                });
-                $.getJSON('http://www.reddit.com/search.json?q=' + query + '&jsonp=?', function(data) {
-                    $('<h2>Reddit</h2><hr>').appendTo($('body')).show('slow')
-                    $.each(data.data.children, function(i,item){
-                        $('<p>'+ item.data.author + ' : <a href="http://reddit.com' + item.data.permalink+'">' + item.data.title + '</a></p>').hide().appendTo($('body')).show('slow')
-                    });
-                });
-                $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=?",{ tags: query,tagmode: "any",format: "json"},function(data) {
-                    $('<h2>Flickr</h2><hr>').appendTo($('body')).show('slow')
-                    $.each(data.items, function(i,item){                        
-                        $("<img/>").attr("src", item.media.m).hide().appendTo("body").show('slow');                                        
-                    });                
-                });                
-                $.getJSON('http://search.twitter.com/search.json?q=' + query +'&rpp=20&callback=?',function(data) {
-                    $('<h2>Twitter</h2><hr>').appendTo($('body')).show('slow');
-                    $.each(data.results, function() {
-                        $('<p>'+ this.from_user + ' : ' + this.text + '</p>').hide().appendTo($('body')).show('slow')                    
-                    });                
-                });
-                $.getJSON('http://identi.ca/api/search.json?q=' + query +'&rpp=20&callback=?',function(data) {
-                    $('<h2>Identica</h2><hr>').appendTo($('body')).show('slow')
-                    $.each(data.results, function() {
-                        $('<p>'+ this.from_user + ' : ' + this.text + '</p>').hide().appendTo($('body')).show('slow')
-                    });
-                });
-                $.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D' + query + '%26f%3Djson&_callback=?', function(data){                                  $('<h2>Wordpress</h2><hr>').appendTo($('body')).show('slow')
-                    $.each(data.value.items, function(i,item) {
-                        $('<p>'+ item.author + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
-                    });
-                });
-                $.getJSON('http://gdata.youtube.com/feeds/api/videos?q='+query+'&format=5&max-results=20&v=2&alt=jsonc&callback=?',function(data) {
-                    $('<h2>Youtube</h2><hr>').appendTo($('body')).show('slow')
-                    $.each(data.data.items, function(i,item) {
-                        $("<iframe width='220' height='150' src='http://www.youtube.com/embed/" + item.id + "' frameborder='0' type='text/html'></iframe>").appendTo($('body')).show('slow')
-                    });
-                });
-                $.getJSON('https://www.googleapis.com/buzz/v1/activities/search?q='+query+'&alt=json&callback=?',function(data) {
-                    $('<h2>Buzz</h2><hr>').appendTo($('body')).show('slow')
-                    $.each(data.data.items, function(i,item) {
-                        $('<p>'+ item.actor.name + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
-                    });
-                });
-            });
+function twitter(query,element){
+    setInterval(function() {
+        base_url = 'http://search.twitter.com/search.json'
+        if (window.twitter_data == undefined){
+            window.twitter_data = [];
+        }
+        if (window.twitter_data['refresh_url'] != undefined){
+            url = window.twitter_data['refresh_url']
+        } else {
+            url = base_url + '?q=' + query + '&callback=?'
+        }
+        $.getJSON(url,function(data) {
+            if (data['refresh_url'] != undefined){
+                window.twitter_data['refresh_url'] = base_url + data['refresh_url'] + '&callback=?'
+            }
+            $.each(data.results, function() {
+                $('<p> Twitter | '+ this.from_user + ' : ' + this.text + '</p>').hide().prependTo($(element)).show('slow')                    
+            });                
         });
-    </script> 
-</head>
-<body>
-<div id="input">
-    <p>Currently pulls data from: Facebook, Twitter, Identica, Buzz, Flickr, Wordpress, Youtube, Reddit</p>
-    <input id="query" type="text" />
-    <button id="search">search</button>
-</div>
-</body>
-</html>
+    },1000)
+}
+
+function identica(query,element){
+    setInterval(function() {
+        base_url = 'http://identi.ca/api/search.json'
+        if (window.identica_data == undefined){
+            window.identica_data = [];
+        }
+        if (window.identica_data['refresh_url'] != undefined){
+            url = window.identica_data['refresh_url']
+        } else {
+            url = base_url + '?q=' + query + '&callback=?'
+        }
+        $.getJSON(url,function(data) {
+            if (data['refresh_url'] != undefined){
+                window.identica_data['refresh_url'] = base_url + data['refresh_url'] + '&callback=?'
+            }
+            $.each(data.results, function() {
+                $('<p> Identica | '+ this.from_user + ' : ' + this.text + '</p>').hide().prependTo($(element)).show('slow')                    
+            });                
+        });
+    },3000)
+}
+
+function facebook(query,element){
+    setInterval(function() {
+        base_url = 'https://graph.facebook.com/search'
+        
+        if (window.facebook_data == undefined){
+            window.facebook_data = [];
+        }
+        if (window.facebook_data['refresh_url'] != undefined){
+            url = window.facebook_data['refresh_url']
+        } else {
+            url = base_url + '?q=' + query + '&type=post&callback=?'
+        }
+        $.getJSON(url,function(data) {
+            if (data.paging != undefined){
+                window.facebook_data['refresh_url'] = data.paging.previous + '&callback=?'
+            }
+            $.each(data['data'], function(i,item) {
+                if (item['message'] != undefined){
+                    $('<p>Facebook | '+ item['from']['name'] + ' : ' + item['message'] + '</p>').hide().prependTo($(element)).show('slow')
+                }
+            });                
+        });
+    },2000)
+}
+
+/*
+$.getJSON('https://graph.facebook.com/search?q=' + query + '&type=post&callback=?', function(data) {
+    $('<h2>Facebook</h2><hr>').appendTo($('body')).show('slow')
+    $.each(data['data'], function(i,item){
+        if (item['message'] != undefined){
+            $('<p>'+ item['from']['name'] + ' : ' + item['message'] + '</p>').hide().appendTo($('body')).show('slow')
+        }
+    });
+});
+$.getJSON('http://www.reddit.com/search.json?q=' + query + '&jsonp=?', function(data) {
+    $('<h2>Reddit</h2><hr>').appendTo($('body')).show('slow')
+    $.each(data.data.children, function(i,item){
+        $('<p>'+ item.data.author + ' : <a href="http://reddit.com' + item.data.permalink+'">' + item.data.title + '</a></p>').hide().appendTo($('body')).show('slow')
+    });
+});
+$.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=?",{ tags: query,tagmode: "any",format: "json"},function(data) {
+    $('<h2>Flickr</h2><hr>').appendTo($('body')).show('slow')
+    $.each(data.items, function(i,item){                        
+        $("<img/>").attr("src", item.media.m).hide().appendTo("body").show('slow');                                        
+    });                
+});                
+$.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D' + query + '%26f%3Djson&_callback=?', function(data){                                  $('<h2>Wordpress</h2><hr>').appendTo($('body')).show('slow')
+    $.each(data.value.items, function(i,item) {
+        $('<p>'+ item.author + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
+    });
+});
+$.getJSON('http://gdata.youtube.com/feeds/api/videos?q='+query+'&format=5&max-results=20&v=2&alt=jsonc&callback=?',function(data) {
+    $('<h2>Youtube</h2><hr>').appendTo($('body')).show('slow')
+    $.each(data.data.items, function(i,item) {
+        $("<iframe width='220' height='150' src='http://www.youtube.com/embed/" + item.id + "' frameborder='0' type='text/html'></iframe>").appendTo($('body')).show('slow')
+    });
+});
+$.getJSON('https://www.googleapis.com/buzz/v1/activities/search?q='+query+'&alt=json&callback=?',function(data) {
+    $('<h2>Buzz</h2><hr>').appendTo($('body')).show('slow')
+    $.each(data.data.items, function(i,item) {
+        $('<p>'+ item.actor.name + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
+    });
+});*/
