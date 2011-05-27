@@ -1,0 +1,21 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> 
+        <script type="text/javascript" src="https://github.com/lrvick/kral-js/raw/master/kral.js"></script> 
+        <script type="text/javascript">
+            $(document).ready(function() {
+                    identica(query,'#stream');
+                    twitter(query,'#stream');
+                    facebook(query,'#stream');
+                });
+            });
+        </script> 
+    </head>
+    <body>
+        <p>Currently pulls data from: Facebook, Twitter, Identica, Buzz, Flickr, Wordpress, Youtube, Reddit</p>
+        <input id="query" type="text" />
+        <button id="search">search</button>
+        <div id='stream'></div>
+    </body>
+</html>
