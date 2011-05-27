@@ -31,7 +31,13 @@
                     $.each(data.results, function() {
                         $('<p>'+ this.from_user + ' : ' + this.text + '</p>').hide().appendTo($('body')).show('slow')                    
                     });                
-                });                
+                });
+                $.getJSON('http://identi.ca/api/search.json?q=' + query +'&rpp=20&callback=?',function(data) {
+                    $('<h2>Identica</h2><hr>').appendTo($('body')).show('slow')
+                    $.each(data.results, function() {
+                        $('<p>'+ this.from_user + ' : ' + this.text + '</p>').hide().appendTo($('body')).show('slow')
+                    });
+                });
                 $.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D' + query + '%26f%3Djson&_callback=?', function(data){                                  $('<h2>Wordpress</h2><hr>').appendTo($('body')).show('slow')
                     $.each(data.value.items, function(i,item) {
                         $('<p>'+ item.author + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
@@ -55,7 +61,7 @@
 </head>
 <body>
 <div id="input">
-    <p>Currently pulls data from: Facebook, Twitter, Buzz, Flickr ,Wordpress, Youtube, Reddit</p>
+    <p>Currently pulls data from: Facebook, Twitter, Identica, Buzz, Flickr, Wordpress, Youtube, Reddit</p>
     <input id="query" type="text" />
     <button id="search">search</button>
 </div>
