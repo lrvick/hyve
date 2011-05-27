@@ -1,6 +1,6 @@
 function twitter(query,element){
     setInterval(function() {
-        base_url = 'http://search.twitter.com/search.json'
+        var base_url = 'http://search.twitter.com/search.json'
         if (window.twitter_data == undefined){
             window.twitter_data = [];
         }
@@ -22,7 +22,7 @@ function twitter(query,element){
 
 function identica(query,element){
     setInterval(function() {
-        base_url = 'http://identi.ca/api/search.json'
+        var base_url = 'http://identi.ca/api/search.json'
         if (window.identica_data == undefined){
             window.identica_data = [];
         }
@@ -44,7 +44,7 @@ function identica(query,element){
 
 function facebook(query,element){
     setInterval(function() {
-        base_url = 'https://graph.facebook.com/search'
+        var base_url = 'https://graph.facebook.com/search'
         
         if (window.facebook_data == undefined){
             window.facebook_data = [];
@@ -67,27 +67,53 @@ function facebook(query,element){
     },2000)
 }
 
-/*
-$.getJSON('https://graph.facebook.com/search?q=' + query + '&type=post&callback=?', function(data) {
-    $('<h2>Facebook</h2><hr>').appendTo($('body')).show('slow')
-    $.each(data['data'], function(i,item){
-        if (item['message'] != undefined){
-            $('<p>'+ item['from']['name'] + ' : ' + item['message'] + '</p>').hide().appendTo($('body')).show('slow')
+function reddit(query,element){
+    setInterval(function() {
+        var base_url = 'http://www.reddit.com/search.json'
+        
+        if (window.reddit_data == undefined){
+            window.reddit_data = [];
         }
-    });
-});
-$.getJSON('http://www.reddit.com/search.json?q=' + query + '&jsonp=?', function(data) {
-    $('<h2>Reddit</h2><hr>').appendTo($('body')).show('slow')
-    $.each(data.data.children, function(i,item){
-        $('<p>'+ item.data.author + ' : <a href="http://reddit.com' + item.data.permalink+'">' + item.data.title + '</a></p>').hide().appendTo($('body')).show('slow')
-    });
-});
-$.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=?",{ tags: query,tagmode: "any",format: "json"},function(data) {
-    $('<h2>Flickr</h2><hr>').appendTo($('body')).show('slow')
-    $.each(data.items, function(i,item){                        
-        $("<img/>").attr("src", item.media.m).hide().appendTo("body").show('slow');                                        
-    });                
-});                
+        if (window.reddit_data['refresh_url'] != undefined){
+            url = window.reddit_data['refresh_url']
+        } else {
+            url = base_url + '?q=' + query + '&sort=new&jsonp=?'
+        }
+        console.log(url)
+        $.getJSON(url,function(data) {
+            if (data.data != undefined){
+                window.reddit_data['refresh_url'] = base_url + '?q=' + query + '&sort=new&before=' + data.data.children[0].data.name + '&jsonp=?'
+            }
+            $.each(data.data.children, function(i,item) {
+                $('<p>Reddit | '+ item.data.author + ' : <a href="http://reddit.com' + item.data.permalink+'">' + item.data.title + '</a></p>').hide().prependTo($(element)).show('slow')
+            });
+        });
+    },5000)
+}
+
+function flickr(query,element){
+    setInterval(function() {
+        var base_url = 'http://api.flickr.com/services/feeds/photos_public.gne'
+        if (window.flickr_data == undefined){
+            window.flickr_data = [];
+        }
+        if (window.flickr_data['refresh_url'] != undefined){
+            url = window.flickr_data['refresh_url']
+        } else {
+            url = base_url + '?jsoncallback=?'
+        }
+        $.getJSON(url,{ tags: query,tagmode: "any",format: "json"},function(data) {
+            $.each(data.items, function(i,item){                        
+            //if (data.paging != undefined){
+            //    window.reddit_data['refresh_url'] = data.paging.previous + '&callback=?'
+            //}
+                $("<img/>").attr("src", item.media.m).hide().prependTo($(element)).show('slow');                                        
+            });                
+        });                
+    },5000)
+}
+
+/*
 $.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D' + query + '%26f%3Djson&_callback=?', function(data){                                  $('<h2>Wordpress</h2><hr>').appendTo($('body')).show('slow')
     $.each(data.value.items, function(i,item) {
         $('<p>'+ item.author + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
