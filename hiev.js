@@ -1,3 +1,56 @@
+var hiev = {
+    jsonp : {
+        counter: 0,
+        fetch : function(url,callback) {
+            var fn = 'callback_' + this.counter++;
+            window[fn] = this.pass(callback);
+            url = url.replace('=?', '=' + fn);
+            var s = document.createElement('script');
+            s.setAttribute('src',url);
+            document.getElementsByTagName('head')[0].appendChild(s);
+            service = 'reddit'
+        },
+        pass: function(callback){
+            return function(data){
+                if (!!window.Worker != undefined){
+                    worker = window['worker']
+                    worker.port.start()
+                    worker.port.postMessage([data,service]);
+                } else {
+                    parsed_data = hiev[service].parse(data)
+                    console.log('Non-Worker parsed_data:')
+                    callback(parsed_data)
+                }
+            }
+        }
+    },
+    stream: function(callback){
+        if (!!window.Worker != undefined){
+            if (window['worker'] == undefined){
+                window['worker'] = new SharedWorker("worker.js")
+            }
+            worker = window['worker']
+            worker.port.addEventListener("message", function(e) {
+                console.log('Worker parsed_data:')
+                callback(e.data)
+            }, false);
+        }
+        this.reddit.stream(callback)
+    },
+    reddit: {
+        stream : function(callback){
+            hiev.jsonp.fetch("http://www.reddit.com/search.json?q=android&sort=new&jsonp=?",callback)
+        },
+        parse : function(data){
+            //format data into USMF format here
+            return data
+        },
+    },
+}
+
+hiev.stream(function(data){console.log(data)})
+
+/*
 function twitter(query,element){
     setInterval(function() {
         var base_url = 'http://search.twitter.com/search.json'
