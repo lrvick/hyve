@@ -1,5 +1,16 @@
 (function(window, undefined) {
     var hyve = {
+        stream: function(query,callback){
+            for (var service in hyve.feeds){
+                setInterval((function(service) {
+                    return function () {
+                        console.log(service,hyve.feeds[service].feed_url)
+                        hyve.feeds[service].feed_url = hyve.feeds[service].feed_url.replace('_QUERY_', query);
+                        hyve.jsonp.fetch(hyve.feeds[service].feed_url,service,callback)
+                    }
+                }(service)),hyve.feeds[service].interval)
+            }   
+        },  
         jsonp : {
             counter: 0,
             fetch : function(url,service,callback) {
@@ -16,17 +27,6 @@
                 }
             }
         },
-        stream: function(query,callback){
-            for (var service in hyve.feeds){
-                setInterval((function(service) {
-                    return function () {
-                        console.log(service,hyve.feeds[service].feed_url)
-                        hyve.feeds[service].feed_url = hyve.feeds[service].feed_url.replace('_QUERY_', query);
-                        hyve.jsonp.fetch(hyve.feeds[service].feed_url,service,callback)
-                    }
-                }(service)),hyve.feeds[service].interval)
-            }   
-        },  
         feeds: {
             twitter: {
                 interval : 2000,
@@ -38,6 +38,23 @@
                     for (var i in data.results){
                         //TODO: USMF Formatting
                         callback('twitter: ' + data.results[i].text)
+                    }
+                }
+            },
+            facebook: {
+                interval : 3000,
+                feed_url : 'https://graph.facebook.com/search?q=_QUERY_&type=post&callback=_CALLBACK_',
+                parse : function(data,callback){
+                    if (data.data != undefined){
+                        if (data.paging != undefined) {
+                            this.feed_url = data.paging.previous + '&callback=_CALLBACK_'
+                        }
+                        for (var i in data.data){
+                            //TODO: USMF Formatting
+                            if (data.data[i].message != undefined){
+                                callback('facebook: ' + data.data[i].message)
+                            }
+                        }
                     }
                 }
             },
