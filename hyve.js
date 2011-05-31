@@ -5,36 +5,57 @@
             fetch : function(url,service,callback) {
                 var fn = 'callback_' + this.counter++;
                 window[fn] = this.pass(service,callback);
-                var url = url.replace('_JSONP_', fn);
+                var url = url.replace('_CALLBACK_', fn);
                 var s = document.createElement('script');
                 s.setAttribute('src',url);
                 document.getElementsByTagName('head')[0].appendChild(s);
             },
             pass: function(service,callback){
                 return function(data){
-                    var parsed_data = hyve.feeds[service].parse(data)
-                    callback(parsed_data)
+                    hyve.feeds[service].parse(data,callback)
                 }
             }
         },
         stream: function(query,callback){
-            var service = 'reddit' // will be a foreach
-            setInterval(function(){ 
-                hyve.feeds[service].feed_url = hyve.feeds[service].feed_url.replace('_QUERY_', query);
-                hyve.jsonp.fetch(hyve.feeds[service].feed_url,service,callback)
-            },hyve.feeds[service].interval)
-        },
+            for (var service in hyve.feeds){
+                setInterval((function(service) {
+                    return function () {
+                        console.log(service,hyve.feeds[service].feed_url)
+                        hyve.feeds[service].feed_url = hyve.feeds[service].feed_url.replace('_QUERY_', query);
+                        hyve.jsonp.fetch(hyve.feeds[service].feed_url,service,callback)
+                    }
+                }(service)),hyve.feeds[service].interval)
+            }   
+        },  
         feeds: {
+            twitter: {
+                interval : 2000,
+                feed_url :'http://search.twitter.com/search.json?q=_QUERY_&callback=_CALLBACK_',
+                parse : function(data,callback){
+                    if (data.refresh_url != undefined){
+                        this.feed_url = 'http://search.twitter.com/search.json' + data.refresh_url+ '&callback=_CALLBACK_'
+                    }
+                    for (var i in data.results){
+                        //TODO: USMF Formatting
+                        callback('twitter: ' + data.results[i].text)
+                    }
+                }
+            },
             reddit: {
                 interval : 5000,
-                feed_url : 'http://www.reddit.com/search.json?query=_QUERY_&sort=new&jsonp=_JSONP_',
-                parse : function(data){
-                    //var before = data.data.children[0].data.name
-                    //var this.feed_url = this.feed_url + '&before=' + before
-                    //update this.feed_url as needed 
-                    //format data into USMF format here
-                    return data
-                },
+                feed_url : 'http://www.reddit.com/search.json?q=_QUERY_&sort=new&jsonp=_CALLBACK_',
+                parse : function(data,callback){
+                    if (data.data.children[0]){
+                        var before = data.data.children[0].data.name
+                        if (before != undefined){
+                            this.feed_url = this.feed_url + '&before=' + before 
+                        }
+                        for (var i in data.data.children){
+                            //TODO: USMF Formatting
+                            callback('reddit: ' + data.data.children[i].data.title)
+                        }
+                    }
+                }
             }
         }
     }
@@ -42,32 +63,28 @@
 })(window);
 
 
-
-
 /*
 
-function reddit(query,element){
+function twitter(query,element){
     setInterval(function() {
-        var base_url = 'http://www.reddit.com/search.json'
-        
-        if (window.reddit_data == undefined){
-            window.reddit_data = [];
+        var base_url = 'http://search.twitter.com/search.json'
+        if (window.twitter_data == undefined){
+            window.twitter_data = [];
         }
-        if (window.reddit_data['refresh_url'] != undefined){
-            url = window.reddit_data['refresh_url']
+        if (window.twitter_data['refresh_url'] != undefined){
+            url = window.twitter_data['refresh_url']
         } else {
-            url = base_url + '?q=' + query + '&sort=new&jsonp=?'
+            url = base_url + '?q=' + query + '&callback=?'
         }
-        console.log(url)
         $.getJSON(url,function(data) {
-            if (data.data != undefined){
-                window.reddit_data['refresh_url'] = base_url + '?q=' + query + '&sort=new&before=' + data.data.children[0].data.name + '&jsonp=?'
+            if (data['refresh_url'] != undefined){
+                window.twitter_data['refresh_url'] = base_url + data['refresh_url'] + '&callback=?'
             }
-            $.each(data.data.children, function(i,item) {
-                $('<p>Reddit | '+ item.data.author + ' : <a href="http://reddit.com' + item.data.permalink+'">' + item.data.title + '</a></p>').hide().prependTo($(element)).show('slow')
-            });
+            $.each(data.results, function() {
+                $('<p> Twitter | '+ this.from_user + ' : ' + this.text + '</p>').hide().prependTo($(element)).show('slow')                    
+            });                
         });
-    },5000)
+    },1000)
 }
 
 function flickr(query,element){
@@ -99,27 +116,7 @@ $.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd3
     });
 });
 
-function twitter(query,element){
-    setInterval(function() {
-        var base_url = 'http://search.twitter.com/search.json'
-        if (window.twitter_data == undefined){
-            window.twitter_data = [];
-        }
-        if (window.twitter_data['refresh_url'] != undefined){
-            url = window.twitter_data['refresh_url']
-        } else {
-            url = base_url + '?q=' + query + '&callback=?'
-        }
-        $.getJSON(url,function(data) {
-            if (data['refresh_url'] != undefined){
-                window.twitter_data['refresh_url'] = base_url + data['refresh_url'] + '&callback=?'
-            }
-            $.each(data.results, function() {
-                $('<p> Twitter | '+ this.from_user + ' : ' + this.text + '</p>').hide().prependTo($(element)).show('slow')                    
-            });                
-        });
-    },1000)
-}
+
 
 function identica(query,element){
     setInterval(function() {
