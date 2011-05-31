@@ -41,6 +41,19 @@
                     }
                 }
             },
+            identica: {
+                interval : 6000,
+                feed_url :'http://identi.ca/api/search.json?q=_QUERY_&callback=_CALLBACK_',
+                parse : function(data,callback){
+                    if (data.refresh_url != undefined){
+                        this.feed_url = 'http://identi.ca/api/search.json' + data.refresh_url+ '&callback=_CALLBACK_'
+                    }
+                    for (var i in data.results){
+                        //TODO: USMF Formatting
+                        callback('identica: ' + data.results[i].text)
+                    }
+                }
+            },
             facebook: {
                 interval : 3000,
                 feed_url : 'https://graph.facebook.com/search?q=_QUERY_&type=post&callback=_CALLBACK_',
