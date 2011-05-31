@@ -1,0 +1,182 @@
+(function(window, undefined) {
+    var hyve = {
+        jsonp : {
+            counter: 0,
+            fetch : function(url,service,callback) {
+                var fn = 'callback_' + this.counter++;
+                window[fn] = this.pass(service,callback);
+                var url = url.replace('_JSONP_', fn);
+                var s = document.createElement('script');
+                s.setAttribute('src',url);
+                document.getElementsByTagName('head')[0].appendChild(s);
+            },
+            pass: function(service,callback){
+                return function(data){
+                    var parsed_data = hyve.feeds[service].parse(data)
+                    callback(parsed_data)
+                }
+            }
+        },
+        stream: function(query,callback){
+            var service = 'reddit' // will be a foreach
+            setInterval(function(){ 
+                hyve.feeds[service].feed_url = hyve.feeds[service].feed_url.replace('_QUERY_', query);
+                hyve.jsonp.fetch(hyve.feeds[service].feed_url,service,callback)
+            },hyve.feeds[service].interval)
+        },
+        feeds: {
+            reddit: {
+                interval : 5000,
+                feed_url : 'http://www.reddit.com/search.json?query=_QUERY_&sort=new&jsonp=_JSONP_',
+                parse : function(data){
+                    //var before = data.data.children[0].data.name
+                    //var this.feed_url = this.feed_url + '&before=' + before
+                    //update this.feed_url as needed 
+                    //format data into USMF format here
+                    return data
+                },
+            }
+        }
+    }
+    window.hyve = hyve;
+})(window);
+
+
+
+
+/*
+
+function reddit(query,element){
+    setInterval(function() {
+        var base_url = 'http://www.reddit.com/search.json'
+        
+        if (window.reddit_data == undefined){
+            window.reddit_data = [];
+        }
+        if (window.reddit_data['refresh_url'] != undefined){
+            url = window.reddit_data['refresh_url']
+        } else {
+            url = base_url + '?q=' + query + '&sort=new&jsonp=?'
+        }
+        console.log(url)
+        $.getJSON(url,function(data) {
+            if (data.data != undefined){
+                window.reddit_data['refresh_url'] = base_url + '?q=' + query + '&sort=new&before=' + data.data.children[0].data.name + '&jsonp=?'
+            }
+            $.each(data.data.children, function(i,item) {
+                $('<p>Reddit | '+ item.data.author + ' : <a href="http://reddit.com' + item.data.permalink+'">' + item.data.title + '</a></p>').hide().prependTo($(element)).show('slow')
+            });
+        });
+    },5000)
+}
+
+function flickr(query,element){
+    setInterval(function() {
+        var base_url = 'http://api.flickr.com/services/feeds/photos_public.gne'
+        if (window.flickr_data == undefined){
+            window.flickr_data = [];
+        }
+        if (window.flickr_data['refresh_url'] != undefined){
+            url = window.flickr_data['refresh_url']
+        } else {
+            url = base_url + '?jsoncallback=?'
+        }
+        $.getJSON(url,{ tags: query,tagmode: "any",format: "json"},function(data) {
+            $.each(data.items, function(i,item){                        
+            //if (data.paging != undefined){
+            //    window.reddit_data['refresh_url'] = data.paging.previous + '&callback=?'
+            //}
+                $("<img/>").attr("src", item.media.m).hide().prependTo($(element)).show('slow');                                        
+            });                
+        });                
+    },5000)
+}
+
+/*
+$.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D' + query + '%26f%3Djson&_callback=?', function(data){                                  $('<h2>Wordpress</h2><hr>').appendTo($('body')).show('slow')
+    $.each(data.value.items, function(i,item) {
+        $('<p>'+ item.author + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
+    });
+});
+
+function twitter(query,element){
+    setInterval(function() {
+        var base_url = 'http://search.twitter.com/search.json'
+        if (window.twitter_data == undefined){
+            window.twitter_data = [];
+        }
+        if (window.twitter_data['refresh_url'] != undefined){
+            url = window.twitter_data['refresh_url']
+        } else {
+            url = base_url + '?q=' + query + '&callback=?'
+        }
+        $.getJSON(url,function(data) {
+            if (data['refresh_url'] != undefined){
+                window.twitter_data['refresh_url'] = base_url + data['refresh_url'] + '&callback=?'
+            }
+            $.each(data.results, function() {
+                $('<p> Twitter | '+ this.from_user + ' : ' + this.text + '</p>').hide().prependTo($(element)).show('slow')                    
+            });                
+        });
+    },1000)
+}
+
+function identica(query,element){
+    setInterval(function() {
+        var base_url = 'http://identi.ca/api/search.json'
+        if (window.identica_data == undefined){
+            window.identica_data = [];
+        }
+        if (window.identica_data['refresh_url'] != undefined){
+            url = window.identica_data['refresh_url']
+        } else {
+            url = base_url + '?q=' + query + '&callback=?'
+        }
+        $.getJSON(url,function(data) {
+            if (data['refresh_url'] != undefined){
+                window.identica_data['refresh_url'] = base_url + data['refresh_url'] + '&callback=?'
+            }
+            $.each(data.results, function() {
+                $('<p> Identica | '+ this.from_user + ' : ' + this.text + '</p>').hide().prependTo($(element)).show('slow')                    
+            });                
+        });
+    },3000)
+}
+
+function facebook(query,element){
+    setInterval(function() {
+        var base_url = 'https://graph.facebook.com/search'
+        
+        if (window.facebook_data == undefined){
+            window.facebook_data = [];
+        }
+        if (window.facebook_data['refresh_url'] != undefined){
+            url = window.facebook_data['refresh_url']
+        } else {
+            url = base_url + '?q=' + query + '&type=post&callback=?'
+        }
+        $.getJSON(url,function(data) {
+            if (data.paging != undefined){
+                window.facebook_data['refresh_url'] = data.paging.previous + '&callback=?'
+            }
+            $.each(data['data'], function(i,item) {
+                if (item['message'] != undefined){
+                    $('<p>Facebook | '+ item['from']['name'] + ' : ' + item['message'] + '</p>').hide().prependTo($(element)).show('slow')
+                }
+            });                
+        });
+    },2000)
+}
+
+$.getJSON('http://gdata.youtube.com/feeds/api/videos?q='+query+'&format=5&max-results=20&v=2&alt=jsonc&callback=?',function(data) {
+    $('<h2>Youtube</h2><hr>').appendTo($('body')).show('slow')
+    $.each(data.data.items, function(i,item) {
+        $("<iframe width='220' height='150' src='http://www.youtube.com/embed/" + item.id + "' frameborder='0' type='text/html'></iframe>").appendTo($('body')).show('slow')
+    });
+});
+$.getJSON('https://www.googleapis.com/buzz/v1/activities/search?q='+query+'&alt=json&callback=?',function(data) {
+    $('<h2>Buzz</h2><hr>').appendTo($('body')).show('slow')
+    $.each(data.data.items, function(i,item) {
+        $('<p>'+ item.actor.name + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
+    });
+});*/
