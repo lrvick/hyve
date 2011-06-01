@@ -1,7 +1,16 @@
 (function(window, undefined) {
     var hyve = {
-        stream: function(query,callback){
-            for (var service in hyve.feeds){
+        stream: function(query,callback,custom_services){
+            if (custom_services == undefined){
+                services = hyve.feeds
+            } else {
+               services = []
+               for (var i in custom_services){
+                    services[custom_services[i]] = {}
+                }
+               
+            }
+            for (var service in services){
                 setInterval((function(service) {
                     return function () {
                         console.log(service,hyve.feeds[service].feed_url)
