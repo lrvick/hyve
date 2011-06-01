@@ -85,9 +85,12 @@
                 feed_url : 'http://www.reddit.com/search.json?q=_QUERY_&sort=new&jsonp=_CALLBACK_',
                 parse : function(data,callback){
                     if (data.data.children[0]){
+                        if (this.orig_url == undefined){
+                            this.orig_url = this.feed_url
+                        }
                         var before = data.data.children[0].data.name
                         if (before != undefined){
-                            this.feed_url = this.feed_url + '&before=' + before 
+                            this.feed_url = this.orig_url + '&before=' + before 
                         }
                         for (var i in data.data.children){
                             //TODO: USMF Formatting
