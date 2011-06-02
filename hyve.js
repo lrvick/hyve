@@ -13,9 +13,10 @@
             for (var service in services){
                 setInterval((function(service) {
                     return function () {
-                        console.log(service,hyve.feeds[service].feed_url)
-                        hyve.feeds[service].feed_url = hyve.feeds[service].feed_url.replace('_QUERY_', query);
-                        hyve.jsonp.fetch(hyve.feeds[service].feed_url,service,callback)
+                        //console.log(service,hyve.feeds[service].feed_url)
+                        var feed_url = hyve.feeds[service].feed_url.replace('_QUERY_', query);
+                        var feed_url = feed_url.replace('_APIKEY_', hyve.feeds[service].api_key);
+                        hyve.jsonp.fetch(feed_url,service,callback)
                     }
                 }(service)),hyve.feeds[service].interval)
             }   
@@ -28,10 +29,12 @@
                 var url = url.replace('_CALLBACK_', fn);
                 var s = document.createElement('script');
                 s.setAttribute('src',url);
+                console.log(url)
                 document.getElementsByTagName('head')[0].appendChild(s);
             },
             pass: function(service,callback){
                 return function(data){
+                    console.log(data)
                     hyve.feeds[service].parse(data,callback)
                 }
             }
@@ -60,6 +63,26 @@
                     for (var i in data.results){
                         //TODO: USMF Formatting
                         callback('identica: ' + data.results[i].text)
+                    }
+                }
+            },
+            buzz: {
+                interval : 5000,
+                api_key: '',
+                feed_url :'https://www.googleapis.com/buzz/v1/activities/search?q=_QUERY_&alt=json&orderby=published&callback=_CALLBACK_&key=_APIKEY_',
+                parse : function(data,callback){
+                    if (this.orig_url == undefined){
+                        this.orig_url = this.feed_url
+                    }
+                    if (data.data.items != undefined){
+                        last_date = data.data.items[0].updated.split('.')[0]
+                        this.feed_url = this.orig_url.replace('_QUERY_','_QUERY_%20AND%20date%3E' + last_date)
+                    }
+                    for (var i in data.data.items){
+                        if (data.data.items[i].title != '-'){
+                            //TODO: USMF Formatting
+                            callback('buzz: ' + data.data.items[i].title)
+                        }
                     }
                 }
             },
