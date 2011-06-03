@@ -13,7 +13,6 @@
             for (var service in services){
                 setInterval((function(service) {
                     return function () {
-                        //console.log(service,hyve.feeds[service].feed_url)
                         var feed_url = hyve.feeds[service].feed_url.replace('_QUERY_', query);
                         var feed_url = feed_url.replace('_APIKEY_', hyve.feeds[service].api_key);
                         hyve.jsonp.fetch(feed_url,service,callback)
@@ -29,12 +28,10 @@
                 var url = url.replace('_CALLBACK_', fn);
                 var s = document.createElement('script');
                 s.setAttribute('src',url);
-                console.log(url)
                 document.getElementsByTagName('head')[0].appendChild(s);
             },
             pass: function(service,callback){
                 return function(data){
-                    console.log(data)
                     hyve.feeds[service].parse(data,callback)
                 }
             }
@@ -121,6 +118,41 @@
                         }
                     }
                 }
+            },
+            flickr: {
+                interval : 10000,
+                api_key : '',
+                feed_url : 'http://api.flickr.com/services/feeds/photos_public.gne?format=json&tagmode=all&tags=_QUERY_&jsoncallback=_CALLBACK_&extras=date_upload,date_taken,owner_name,geo,tags,views',
+                parse : function(data,callback){
+                    if (this.items_seen == undefined){
+                        this.items_seen = {};
+                    }
+                    for (var i in data.items){
+                        var item_id = data.items[i].media.m
+                        if (this.items_seen[item_id] == undefined){
+                            this.items_seen[item_id] = true
+                            //TODO: USMF Formatting
+                            callback('flickr: ' + data.items[i].description)
+                        } 
+                    }
+                }
+            },
+            youtube: {
+                interval : 8000,
+                feed_url : 'http://gdata.youtube.com/feeds/api/videos?q=_QUERY_&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc&callback=_CALLBACK_',
+                parse : function(data,callback){
+                    if (this.items_seen == undefined){
+                        this.items_seen = {};
+                    }
+                    for (var i in data.data.items){
+                        var item_id = data.data.items[i].id
+                        if (this.items_seen[item_id] == undefined){
+                            this.items_seen[item_id] = true
+                            //TODO: USMF Formatting
+                            callback('youtube: ' + data.data.items[i].description)
+                        } 
+                    }
+                }
             }
         }
     }
@@ -129,116 +161,9 @@
 
 
 /*
-
-function twitter(query,element){
-    setInterval(function() {
-        var base_url = 'http://search.twitter.com/search.json'
-        if (window.twitter_data == undefined){
-            window.twitter_data = [];
-        }
-        if (window.twitter_data['refresh_url'] != undefined){
-            url = window.twitter_data['refresh_url']
-        } else {
-            url = base_url + '?q=' + query + '&callback=?'
-        }
-        $.getJSON(url,function(data) {
-            if (data['refresh_url'] != undefined){
-                window.twitter_data['refresh_url'] = base_url + data['refresh_url'] + '&callback=?'
-            }
-            $.each(data.results, function() {
-                $('<p> Twitter | '+ this.from_user + ' : ' + this.text + '</p>').hide().prependTo($(element)).show('slow')                    
-            });                
-        });
-    },1000)
-}
-
-function flickr(query,element){
-    setInterval(function() {
-        var base_url = 'http://api.flickr.com/services/feeds/photos_public.gne'
-        if (window.flickr_data == undefined){
-            window.flickr_data = [];
-        }
-        if (window.flickr_data['refresh_url'] != undefined){
-            url = window.flickr_data['refresh_url']
-        } else {
-            url = base_url + '?jsoncallback=?'
-        }
-        $.getJSON(url,{ tags: query,tagmode: "any",format: "json"},function(data) {
-            $.each(data.items, function(i,item){                        
-            //if (data.paging != undefined){
-            //    window.reddit_data['refresh_url'] = data.paging.previous + '&callback=?'
-            //}
-                $("<img/>").attr("src", item.media.m).hide().prependTo($(element)).show('slow');                                        
-            });                
-        });                
-    },5000)
-}
-
-/*
 $.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D' + query + '%26f%3Djson&_callback=?', function(data){                                  $('<h2>Wordpress</h2><hr>').appendTo($('body')).show('slow')
     $.each(data.value.items, function(i,item) {
         $('<p>'+ item.author + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
     });
 });
-
-
-
-function identica(query,element){
-    setInterval(function() {
-        var base_url = 'http://identi.ca/api/search.json'
-        if (window.identica_data == undefined){
-            window.identica_data = [];
-        }
-        if (window.identica_data['refresh_url'] != undefined){
-            url = window.identica_data['refresh_url']
-        } else {
-            url = base_url + '?q=' + query + '&callback=?'
-        }
-        $.getJSON(url,function(data) {
-            if (data['refresh_url'] != undefined){
-                window.identica_data['refresh_url'] = base_url + data['refresh_url'] + '&callback=?'
-            }
-            $.each(data.results, function() {
-                $('<p> Identica | '+ this.from_user + ' : ' + this.text + '</p>').hide().prependTo($(element)).show('slow')                    
-            });                
-        });
-    },3000)
-}
-
-function facebook(query,element){
-    setInterval(function() {
-        var base_url = 'https://graph.facebook.com/search'
-        
-        if (window.facebook_data == undefined){
-            window.facebook_data = [];
-        }
-        if (window.facebook_data['refresh_url'] != undefined){
-            url = window.facebook_data['refresh_url']
-        } else {
-            url = base_url + '?q=' + query + '&type=post&callback=?'
-        }
-        $.getJSON(url,function(data) {
-            if (data.paging != undefined){
-                window.facebook_data['refresh_url'] = data.paging.previous + '&callback=?'
-            }
-            $.each(data['data'], function(i,item) {
-                if (item['message'] != undefined){
-                    $('<p>Facebook | '+ item['from']['name'] + ' : ' + item['message'] + '</p>').hide().prependTo($(element)).show('slow')
-                }
-            });                
-        });
-    },2000)
-}
-
-$.getJSON('http://gdata.youtube.com/feeds/api/videos?q='+query+'&format=5&max-results=20&v=2&alt=jsonc&callback=?',function(data) {
-    $('<h2>Youtube</h2><hr>').appendTo($('body')).show('slow')
-    $.each(data.data.items, function(i,item) {
-        $("<iframe width='220' height='150' src='http://www.youtube.com/embed/" + item.id + "' frameborder='0' type='text/html'></iframe>").appendTo($('body')).show('slow')
-    });
-});
-$.getJSON('https://www.googleapis.com/buzz/v1/activities/search?q='+query+'&alt=json&callback=?',function(data) {
-    $('<h2>Buzz</h2><hr>').appendTo($('body')).show('slow')
-    $.each(data.data.items, function(i,item) {
-        $('<p>'+ item.actor.name + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
-    });
 });*/
