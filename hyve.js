@@ -45,18 +45,18 @@
                         this.feed_url = 'http://search.twitter.com/search.json' + data.refresh_url+ '&callback=_CALLBACK_'
                     }
                     for (var i in data.results){
+                        item = data.results[i]
                         callback({
                             'service' : 'twitter',
                             'user' : {
-                                'id' : '',
-                                'name' : '',
-                                'avatar' : ''    
+                                'id' : item.from_user_id_str,,
+                                'name' : item.from_user,
+                                'avatar' : item.profile_image_url,    
                             },
-                            'id' : '',
-                            'date' : '',
-                            'text' : data.results[i].text,
-                            'source' : '',
-                            'thumbnail':''
+                            'id' : item.id_str,
+                            'date' : item.created_at, //TODO: normalize
+                            'text' : item.text,
+                            'source' : item.source,
                         })
                     }
                 }
@@ -69,18 +69,18 @@
                         this.feed_url = 'http://identi.ca/api/search.json' + data.refresh_url+ '&callback=_CALLBACK_'
                     }
                     for (var i in data.results){
+                        item = data.results[i]
                         callback({
                             'service' : 'identica',
                             'user' : {
-                                'id' : '',
-                                'name' : '',
-                                'avatar' : ''    
+                                'id' : item.from_user_id_str,,
+                                'name' : item.from_user,
+                                'avatar' : item.profile_image_url,    
                             },
-                            'id' : '',
-                            'date' : '',
-                            'text' : data.results[i].text,
-                            'source' : '',
-                            'thumbnail':''
+                            'id' : item.id_str,
+                            'date' : item.created_at, //TODO: normalize
+                            'text' : item.text,
+                            'source' : item.source
                         })
                     }
                 }
@@ -99,18 +99,19 @@
                     }
                     for (var i in data.data.items){
                         if (data.data.items[i].title != '-'){
+                            item = data.date.items[i]
                             callback({
                                 'service' : 'buzz',
                                 'user' : {
-                                    'id' : '',
-                                    'name' : '',
-                                    'avatar' : ''    
+                                    'id' : item.actor.name,
+                                    'name' : item.actor.name,
+                                    'avatar' : item.actor.thumbnailUrl,
+                                    'source' : item.actor.profileUrl
                                 },
-                                'id' : '',
-                                'date' : '',
-                                'text' : data.data.items[i].title,
-                                'source' : '',
-                                'thumbnail':''
+                                'id' : item.id.split(':')[3],
+                                'date' : item.published, //TODO normalize
+                                'text' : item.title,
+                                'source' : item.object.links.alternate[0].href
                             })
                         }
                     }
@@ -125,19 +126,19 @@
                             this.feed_url = data.paging.previous + '&callback=_CALLBACK_'
                         }
                         for (var i in data.data){
-                            if (data.data[i].message != undefined){
+                            item = data.data[i]
+                            if (item.message != undefined){
                                 callback({
                                     'service' : 'facebook',
                                     'user' : {
-                                        'id' : '',
-                                        'name' : '',
-                                        'avatar' : ''    
+                                        'id' : item.from.id,
+                                        'name' : item.from.name,
+                                        'avatar' : 'http://graph.facebook.com/'+item.from.id+'/picture'
                                     },
-                                    'id' : '',
-                                    'date' : '',
-                                    'text' : data.data[i].message,
-                                    'source' : '',
-                                    'thumbnail':''
+                                    'id' : item.id,
+                                    'date' : item.created_time, //TODO: normalize
+                                    'text' : item.message,
+                                    'source' : 'http://facebook.com/'+item.from.id
                                 })
                             }
                         }
@@ -157,6 +158,7 @@
                             this.feed_url = this.orig_url + '&before=' + before 
                         }
                         for (var i in data.data.children){
+                            item = data.data.children[i].data
                             callback({
                                 'service' : 'reddit',
                                 'user' : {
@@ -165,8 +167,8 @@
                                     'avatar' : ''    
                                 },
                                 'id' : '',
-                                'date' : '',
-                                'text' : data.data.children[i].data.title,
+                                'date' : '', //TODO: normalize
+                                'text' : item.title,
                                 'source' : '',
                                 'thumbnail':''
                             })
@@ -183,9 +185,9 @@
                         this.items_seen = {};
                     }
                     for (var i in data.items){
-                        var item_id = data.items[i].media.m
-                        if (this.items_seen[item_id] == undefined){
-                            this.items_seen[item_id] = true
+                        item = data.items[i]
+                        if (this.items_seen[item.media.m] == undefined){
+                            this.items_seen[item.media.m] = true
                             callback({
                                 'service' : 'flickr',
                                 'user' : {
@@ -194,8 +196,8 @@
                                     'avatar' : ''    
                                 },
                                 'id' : '',
-                                'date' : '',
-                                'text' : data.items[i].description,
+                                'date' : '', //TODO: normalize
+                                'text' : item.description,
                                 'source' : '',
                                 'thumbnail':''
                             })
@@ -211,9 +213,9 @@
                         this.items_seen = {};
                     }
                     for (var i in data.data.items){
-                        var item_id = data.data.items[i].id
-                        if (this.items_seen[item_id] == undefined){
-                            this.items_seen[item_id] = true
+                        item = data.data.items[i]
+                        if (this.items_seen[item.id] == undefined){
+                            this.items_seen[item.id] = true
                             callback({
                                 'service' : 'youtube',
                                 'user' : {
@@ -222,8 +224,8 @@
                                     'avatar' : ''    
                                 },
                                 'id' : '',
-                                'date' : '',
-                                'text' : data.data.items[i].description,
+                                'date' : '', //TODO: normalize
+                                'text' : item.description,
                                 'source' : '',
                                 'thumbnail':''
                             })
