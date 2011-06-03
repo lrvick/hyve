@@ -9,8 +9,8 @@
                 $('#search').bind("click",function(){
                     query=$('#query').val();
                     hyve.stream(query,function(data){
-                        $('#data').prepend($('<p>'+data+'</p>'))
-                    //},['youtube'])
+                        $('#data').prepend($('<p>' + data.service +' : '+ data.text  +'</p>'))
+                    //},['twitter'])
                     });
                 });
             });

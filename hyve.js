@@ -45,8 +45,19 @@
                         this.feed_url = 'http://search.twitter.com/search.json' + data.refresh_url+ '&callback=_CALLBACK_'
                     }
                     for (var i in data.results){
-                        //TODO: USMF Formatting
-                        callback('twitter: ' + data.results[i].text)
+                        callback({
+                            'service' : 'twitter',
+                            'user' : {
+                                'id' : '',
+                                'name' : '',
+                                'avatar' : ''    
+                            },
+                            'id' : '',
+                            'date' : '',
+                            'text' : data.results[i].text,
+                            'source' : '',
+                            'thumbnail':''
+                        })
                     }
                 }
             },
@@ -58,8 +69,19 @@
                         this.feed_url = 'http://identi.ca/api/search.json' + data.refresh_url+ '&callback=_CALLBACK_'
                     }
                     for (var i in data.results){
-                        //TODO: USMF Formatting
-                        callback('identica: ' + data.results[i].text)
+                        callback({
+                            'service' : 'identica',
+                            'user' : {
+                                'id' : '',
+                                'name' : '',
+                                'avatar' : ''    
+                            },
+                            'id' : '',
+                            'date' : '',
+                            'text' : data.results[i].text,
+                            'source' : '',
+                            'thumbnail':''
+                        })
                     }
                 }
             },
@@ -77,8 +99,19 @@
                     }
                     for (var i in data.data.items){
                         if (data.data.items[i].title != '-'){
-                            //TODO: USMF Formatting
-                            callback('buzz: ' + data.data.items[i].title)
+                            callback({
+                                'service' : 'buzz',
+                                'user' : {
+                                    'id' : '',
+                                    'name' : '',
+                                    'avatar' : ''    
+                                },
+                                'id' : '',
+                                'date' : '',
+                                'text' : data.data.items[i].title,
+                                'source' : '',
+                                'thumbnail':''
+                            })
                         }
                     }
                 }
@@ -92,9 +125,20 @@
                             this.feed_url = data.paging.previous + '&callback=_CALLBACK_'
                         }
                         for (var i in data.data){
-                            //TODO: USMF Formatting
                             if (data.data[i].message != undefined){
-                                callback('facebook: ' + data.data[i].message)
+                                callback({
+                                    'service' : 'facebook',
+                                    'user' : {
+                                        'id' : '',
+                                        'name' : '',
+                                        'avatar' : ''    
+                                    },
+                                    'id' : '',
+                                    'date' : '',
+                                    'text' : data.data[i].message,
+                                    'source' : '',
+                                    'thumbnail':''
+                                })
                             }
                         }
                     }
@@ -113,8 +157,19 @@
                             this.feed_url = this.orig_url + '&before=' + before 
                         }
                         for (var i in data.data.children){
-                            //TODO: USMF Formatting
-                            callback('reddit: ' + data.data.children[i].data.title)
+                            callback({
+                                'service' : 'reddit',
+                                'user' : {
+                                    'id' : '',
+                                    'name' : '',
+                                    'avatar' : ''    
+                                },
+                                'id' : '',
+                                'date' : '',
+                                'text' : data.data.children[i].data.title,
+                                'source' : '',
+                                'thumbnail':''
+                            })
                         }
                     }
                 }
@@ -131,8 +186,19 @@
                         var item_id = data.items[i].media.m
                         if (this.items_seen[item_id] == undefined){
                             this.items_seen[item_id] = true
-                            //TODO: USMF Formatting
-                            callback('flickr: ' + data.items[i].description)
+                            callback({
+                                'service' : 'flickr',
+                                'user' : {
+                                    'id' : '',
+                                    'name' : '',
+                                    'avatar' : ''    
+                                },
+                                'id' : '',
+                                'date' : '',
+                                'text' : data.items[i].description,
+                                'source' : '',
+                                'thumbnail':''
+                            })
                         } 
                     }
                 }
@@ -148,8 +214,19 @@
                         var item_id = data.data.items[i].id
                         if (this.items_seen[item_id] == undefined){
                             this.items_seen[item_id] = true
-                            //TODO: USMF Formatting
-                            callback('youtube: ' + data.data.items[i].description)
+                            callback({
+                                'service' : 'youtube',
+                                'user' : {
+                                    'id' : '',
+                                    'name' : '',
+                                    'avatar' : ''    
+                                },
+                                'id' : '',
+                                'date' : '',
+                                'text' : data.data.items[i].description,
+                                'source' : '',
+                                'thumbnail':''
+                            })
                         } 
                     }
                 }
