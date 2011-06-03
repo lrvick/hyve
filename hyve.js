@@ -49,7 +49,7 @@
                         callback({
                             'service' : 'twitter',
                             'user' : {
-                                'id' : item.from_user_id_str,,
+                                'id' : item.from_user_id_str,
                                 'name' : item.from_user,
                                 'avatar' : item.profile_image_url,    
                             },
@@ -73,7 +73,7 @@
                         callback({
                             'service' : 'identica',
                             'user' : {
-                                'id' : item.from_user_id_str,,
+                                'id' : item.from_user_id_str,
                                 'name' : item.from_user,
                                 'avatar' : item.profile_image_url,    
                             },
