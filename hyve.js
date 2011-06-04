@@ -1,4 +1,21 @@
 (function(window, undefined) {
+    var jsonp = {
+        counter: 0,
+        fetch : function(url,service,callback) {
+            var fn = 'callback_' + this.counter++;
+            window[fn] = this.pass(service,callback);
+            var url = url.replace('_CALLBACK_', fn);
+            var s = document.createElement('script');
+            s.setAttribute('src',url);
+            document.getElementsByTagName('head')[0].appendChild(s);
+        },
+        pass: function(service,callback){
+            return function(data){
+                hyve.feeds[service].parse(data,callback)
+            }
+        }
+    };
+
     var hyve = {
         stream: function(query,callback,custom_services){
             if (custom_services == undefined){
@@ -8,32 +25,16 @@
                for (var i in custom_services){
                     services[custom_services[i]] = {}
                 }
-               
+
             }
             for (var service in services){
                 setInterval((function(service) {
                     return function () {
                         var feed_url = hyve.feeds[service].feed_url.replace('_QUERY_', query);
                         var feed_url = feed_url.replace('_APIKEY_', hyve.feeds[service].api_key);
-                        hyve.jsonp.fetch(feed_url,service,callback)
+                        jsonp.fetch(feed_url,service,callback)
                     }
                 }(service)),hyve.feeds[service].interval)
-            }   
-        },  
-        jsonp : {
-            counter: 0,
-            fetch : function(url,service,callback) {
-                var fn = 'callback_' + this.counter++;
-                window[fn] = this.pass(service,callback);
-                var url = url.replace('_CALLBACK_', fn);
-                var s = document.createElement('script');
-                s.setAttribute('src',url);
-                document.getElementsByTagName('head')[0].appendChild(s);
-            },
-            pass: function(service,callback){
-                return function(data){
-                    hyve.feeds[service].parse(data,callback)
-                }
             }
         },
         feeds: {}
