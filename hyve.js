@@ -145,26 +145,26 @@
                     if (this.orig_url == null){
                         this.orig_url = this.feed_url
                     }
-                    if (data.data.items != null){
+                    if (data.data != null){
                         var last_date = data.data.items[0].updated.split('.')[0]
                         this.feed_url = this.orig_url.replace('{{query}}','{{query}}%20AND%20date%3E' + last_date)
-                    }
-                    for (var i in data.data.items){
-                        if (data.data.items[i].title != '-'){
-                            var item = data.data.items[i]
-                            callback({
-                                'service' : 'buzz',
-                                'user' : {
-                                    'id' : item.actor.name,
-                                    'name' : item.actor.name,
-                                    'avatar' : item.actor.thumbnailUrl,
-                                    'source' : item.actor.profileUrl
-                                },
-                                'id' : item.id.split(':')[3],
-                                'date' : item.published, //TODO normalize
-                                'text' : item.title,
-                                'source' : item.object.links.alternate[0].href
-                            })
+                        for (var i in data.data.items){
+                            if (data.data.items[i].title != '-'){
+                                var item = data.data.items[i]
+                                callback({
+                                    'service' : 'buzz',
+                                    'user' : {
+                                        'id' : item.actor.name,
+                                        'name' : item.actor.name,
+                                        'avatar' : item.actor.thumbnailUrl,
+                                        'source' : item.actor.profileUrl
+                                    },
+                                    'id' : item.id.split(':')[3],
+                                    'date' : item.published, //TODO normalize
+                                    'text' : item.title,
+                                    'source' : item.object.links.alternate[0].href
+                                })
+                            }
                         }
                     }
                 }
@@ -264,24 +264,26 @@
                     if (this.items_seen == null){
                         this.items_seen = {};
                     }
-                    for (var i in data.data.items){
-                        var item = data.data.items[i]
-                        if (this.items_seen[item.id] == null){
-                            this.items_seen[item.id] = true
-                            callback({
-                                'service' : 'youtube',
-                                'user' : {
+                    if (data.data != null){
+                        for (var i in data.data.items){
+                            var item = data.data.items[i]
+                            if (this.items_seen[item.id] == null){
+                                this.items_seen[item.id] = true
+                                callback({
+                                    'service' : 'youtube',
+                                    'user' : {
+                                        'id' : '',
+                                        'name' : '',
+                                        'avatar' : ''    
+                                    },
                                     'id' : '',
-                                    'name' : '',
-                                    'avatar' : ''    
-                                },
-                                'id' : '',
-                                'date' : '', //TODO: normalize
-                                'text' : item.description,
-                                'source' : '',
-                                'thumbnail':''
-                            })
-                        } 
+                                    'date' : '', //TODO: normalize
+                                    'text' : item.description,
+                                    'source' : '',
+                                    'thumbnail':''
+                                })
+                            } 
+                        }
                     }
                 }
             }
