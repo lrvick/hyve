@@ -14,11 +14,12 @@
  
   * Plays nice with all major JS frameworks (jQuery, Mootools etc.)
   * Can run any javascript function of your choice against each posting retrieved.
-  * Outputs all data in a consistant format 
-    - See USMF <https://github.com/lrvick/tawlk/wiki/Unified-Social-Media-Format-(USMF)>
+  * Outputs all data in a consistant format - [USMF][] 
   * Supports Facebook, Twitter, Identica, Buzz, Flickr, Youtube and Reddit
   * Streams from all services (default), or optinoally only selected services
   * Runs in the browser or on the server (Node.js)
+
+[USMF]: https://github.com/lrvick/tawlk/wiki/Unified-Social-Media-Format-(USMF)
 
 
 ## Requirements ##
@@ -44,7 +45,7 @@ it from [npm][]:
     
         <script src="hyve.js" type="text/javascript"></script>
 
-  2. Define a function to do somethign with incoming data
+  2. Define a function to do somethign with incoming data and run hyve.stream
 
     Simple echo of Twitter, Facebook, and Buzz with pure JS:
         
@@ -53,6 +54,14 @@ it from [npm][]:
         var myServices = ['Twitter','Facebook','Buzz']
         
         hyve.stream(myQuery,myFunction,myServices)
+    
+    Simple Node.js example to output data from all services:
+        
+        var hyve = require('hyve')
+
+        hyve.stream('android', function(data){
+            console.log(data.service +' : '+ data.text);
+        })
 
     Basic live search engine with jQuery:
 
