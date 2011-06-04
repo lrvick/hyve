@@ -2,9 +2,9 @@
     var hyve = {
         stream: function(query,callback,custom_services){
             if (custom_services == undefined){
-                services = hyve.feeds
+                var services = hyve.feeds
             } else {
-               services = []
+               var services = []
                for (var i in custom_services){
                     services[custom_services[i]] = {}
                 }
@@ -45,7 +45,7 @@
                         this.feed_url = 'http://search.twitter.com/search.json' + data.refresh_url+ '&callback=_CALLBACK_'
                     }
                     for (var i in data.results){
-                        item = data.results[i]
+                        var item = data.results[i]
                         callback({
                             'service' : 'twitter',
                             'user' : {
@@ -69,7 +69,7 @@
                         this.feed_url = 'http://identi.ca/api/search.json' + data.refresh_url+ '&callback=_CALLBACK_'
                     }
                     for (var i in data.results){
-                        item = data.results[i]
+                        var item = data.results[i]
                         callback({
                             'service' : 'identica',
                             'user' : {
@@ -94,12 +94,12 @@
                         this.orig_url = this.feed_url
                     }
                     if (data.data.items != undefined){
-                        last_date = data.data.items[0].updated.split('.')[0]
+                        var last_date = data.data.items[0].updated.split('.')[0]
                         this.feed_url = this.orig_url.replace('_QUERY_','_QUERY_%20AND%20date%3E' + last_date)
                     }
                     for (var i in data.data.items){
                         if (data.data.items[i].title != '-'){
-                            item = data.date.items[i]
+                            var item = data.date.items[i]
                             callback({
                                 'service' : 'buzz',
                                 'user' : {
@@ -126,7 +126,7 @@
                             this.feed_url = data.paging.previous + '&callback=_CALLBACK_'
                         }
                         for (var i in data.data){
-                            item = data.data[i]
+                            var item = data.data[i]
                             if (item.message != undefined){
                                 callback({
                                     'service' : 'facebook',
@@ -158,7 +158,7 @@
                             this.feed_url = this.orig_url + '&before=' + before 
                         }
                         for (var i in data.data.children){
-                            item = data.data.children[i].data
+                            var item = data.data.children[i].data
                             callback({
                                 'service' : 'reddit',
                                 'user' : {
@@ -185,7 +185,7 @@
                         this.items_seen = {};
                     }
                     for (var i in data.items){
-                        item = data.items[i]
+                        var item = data.items[i]
                         if (this.items_seen[item.media.m] == undefined){
                             this.items_seen[item.media.m] = true
                             callback({
@@ -213,7 +213,7 @@
                         this.items_seen = {};
                     }
                     for (var i in data.data.items){
-                        item = data.data.items[i]
+                        var item = data.data.items[i]
                         if (this.items_seen[item.id] == undefined){
                             this.items_seen[item.id] = true
                             callback({
@@ -237,7 +237,6 @@
     }
     window.hyve = hyve;
 })(window);
-
 
 /*
 $.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D' + query + '%26f%3Djson&_callback=?', function(data){                                  $('<h2>Wordpress</h2><hr>').appendTo($('body')).show('slow')
