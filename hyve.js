@@ -8,7 +8,7 @@
                              , function(m, cond, id) {
                                  var rv = data[id]
                                  return rv? (cond || '') + rv
-                                          : cond? '' : m })
+                                          :  cond? m : '' })
     }
 
     // Pulls data from several streams and handle all them with the given
@@ -55,7 +55,7 @@
                     callback(JSON.parse(data))
                 }
                 catch(e){
-                    console.log({ }, e)
+                    callback({ }, e)
                 }
             })
         }
@@ -151,7 +151,7 @@
                     }
                     for (var i in data.data.items){
                         if (data.data.items[i].title != '-'){
-                            var item = data.date.items[i]
+                            var item = data.data.items[i]
                             callback({
                                 'service' : 'buzz',
                                 'user' : {
