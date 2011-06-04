@@ -2,11 +2,13 @@
   
   <http://github.com/lrvick/hyve>
 
+
 ## About ##
 
   Hyve (pronounced: "hive") is a javascript library aiming to be a general
   solution for streaming the latest data from multiple social media networks,
   for any given topic, and abstracting all of them into one simple API.
+
 
 ## Current Features ##
  
@@ -16,6 +18,19 @@
     - See USMF <https://github.com/lrvick/tawlk/wiki/Unified-Social-Media-Format-(USMF)>
   * Supports Facebook, Twitter, Identica, Buzz, Flickr, Youtube and Reddit
   * Streams from all services (default), or optinoally only selected services
+  * Runs in the browser or on the server (Node.js)
+
+
+## Requirements ##
+
+For running Hyve in Node.js, you'll need the [request][] library. You can grab
+it from [npm][]:
+
+    $ npm install request
+    
+[request]: https://github.com/mikeal/request
+[npm]:     http://npmjs.org
+
 
 ## Usage / Installation ##
 
@@ -65,7 +80,8 @@
                 <div id="output"></div> 
             </body> 
         </html>         
-        
+
+
 ## Notes ##
     
   Buzz has really strict limits and requires an API key to do more than a few queries.
