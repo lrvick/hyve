@@ -39,7 +39,7 @@ Arguments:
 
 ```javascript
 
-    hyve.stream(search_terms,callback_function,optional_service_list)
+hyve.stream(search_terms,callback_function,optional_service_list)
 
 ```
 
@@ -47,11 +47,11 @@ Simple echo of Twitter, Facebook, and Buzz with pure JS:
         
 ```javascript    
 
-    var myFunction = function(data){console.log(' + data.service +' : '+ data.text  +')}
-    var myQuery = 'android'
-    var myServices = ['Twitter','Facebook','Buzz']
-        
-    hyve.stream(myQuery,myFunction,myServices)
+var myFunction = function(data){console.log(' + data.service +' : '+ data.text  +')}
+var myQuery = 'android'
+var myServices = ['Twitter','Facebook','Buzz']
+    
+hyve.stream(myQuery,myFunction,myServices)
         
 ```
 
@@ -59,11 +59,11 @@ Simple Node.js example to output data from all services:
         
 ```javascript        
 
-    var hyve = require('hyve')
+var hyve = require('hyve')
 
-    hyve.stream('android', function(data){
-        console.log(data.service +' : '+ data.text);
-    })
+hyve.stream('android', function(data){
+    console.log(data.service +' : '+ data.text);
+})
 
 ```
 
@@ -71,30 +71,30 @@ Basic live search engine with jQuery:
 
 ```html
 
-    <!DOCTYPE HTML> 
-    <html> 
-        <head> 
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> 
-            <script src="hyve.js" type="text/javascript"></script> 
-            <script type="text/javascript">
-                $(document).ready(function() {    
-                    $('#search').bind("click",function(){
-                        query=$('#query').val();
-                        hyve.stream(query,function(data){
-                            $('#output').prepend($('<p>' + data.service +' : '+ data.text  +'</p>'))
-                        });
+<!DOCTYPE HTML> 
+<html> 
+    <head> 
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> 
+        <script src="hyve.js" type="text/javascript"></script> 
+        <script type="text/javascript">
+            $(document).ready(function() {    
+                $('#search').bind("click",function(){
+                    query=$('#query').val();
+                    hyve.stream(query,function(data){
+                        $('#output').prepend($('<p>' + data.service +' : '+ data.text  +'</p>'))
                     });
                 });
-            </script> 
-        </head> 
-        <body> 
-            <div id="input"> 
-                <input id="query" type="text" /> 
-                <button id="search">search</button> 
-            </div> 
-            <div id="output"></div> 
-        </body> 
-    </html>         
+            });
+        </script> 
+    </head> 
+    <body> 
+        <div id="input"> 
+            <input id="query" type="text" /> 
+            <button id="search">search</button> 
+        </div> 
+        <div id="output"></div> 
+    </body> 
+</html>         
         
 ```
 
