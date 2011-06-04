@@ -34,37 +34,36 @@ it from [npm][]:
 
 
 ## Usage / Installation ##
+  
+Arguments:
 
-  Arguments:
-
+        ```javascript
         hyve.stream(search_terms,callback_function,optional_service_list)
+        ```
 
-  Example Usage:
-
-  1. Import hyve.js in your project
-    
-        <script src="hyve.js" type="text/javascript"></script>
-
-  2. Define a function to do somethign with incoming data and run hyve.stream
-
-    Simple echo of Twitter, Facebook, and Buzz with pure JS:
+Simple echo of Twitter, Facebook, and Buzz with pure JS:
         
+        ```javascript    
         var myFunction = function(data){console.log(' + data.service +' : '+ data.text  +')}
         var myQuery = 'android'
         var myServices = ['Twitter','Facebook','Buzz']
         
         hyve.stream(myQuery,myFunction,myServices)
-    
-    Simple Node.js example to output data from all services:
+        ```
+
+Simple Node.js example to output data from all services:
         
+        ```javascript        
         var hyve = require('hyve')
 
         hyve.stream('android', function(data){
             console.log(data.service +' : '+ data.text);
         })
+        ```
 
-    Basic live search engine with jQuery:
+Basic live search engine with jQuery:
 
+        ```html
         <!DOCTYPE HTML> 
         <html> 
             <head> 
@@ -89,7 +88,7 @@ it from [npm][]:
                 <div id="output"></div> 
             </body> 
         </html>         
-
+        ```
 
 ## Notes ##
     
