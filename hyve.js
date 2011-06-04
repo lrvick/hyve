@@ -1,48 +1,100 @@
-(function(window) {
-    var hyve = {
-        stream: function(query,callback,custom_services){
-            if (custom_services == null){
-                var services = hyve.feeds
-            } else {
-               var services = []
-               for (var i in custom_services){
-                    services[custom_services[i]] = {}
+(function(root) {
+    var get   = typeof require == 'function' && require('request')
+    var hyve  = typeof exports != 'undefined'?  exports : { }
+
+    // Fills a template with data from an object
+    function format(string, data) {
+        return string.replace( /{{(?:#(.+?)#)?\s*(.+?)\s*}}/g
+                             , function(m, cond, id) {
+                                 var rv = data[id]
+                                 return rv? (cond || '') + rv
+                                          : cond? '' : m })
+    }
+
+    // Pulls data from several streams and handle all them with the given
+    // callback
+    function stream(query, callback, custom_services) {
+        var services
+        services = custom_services || Object.keys(hyve.feeds)
+
+        services.forEach(function(service){
+            var options = hyve.feeds[service.toLowerCase()]
+            setInterval(function(){
+                var feed_url = format( options.feed_url,
+                                     { query:  query
+                                     , apikey: options.api_key })
+
+                fetch(feed_url, service, callback)
+            }, options.interval)
+        })
+    }
+
+    // Fetches a JSON stream
+    var fetch = function() {
+        var counter   = 0
+        var callbacks = { }
+        var head      = !get && document.getElementsByTagName('head')[0]
+
+        // Returns a qualified identifier pointing to a callback
+        function get_callback() {
+            return format('hyve.callbacks.f{{id}}', { id: ++counter })
+        }
+
+        // Requires an URI using JSONP
+        function jsonp(url, callback) {
+            hyve.callbacks['f' + counter] = callback
+            var s = document.createElement('script')
+            s.setAttribute('src', url)
+            head.appendChild(s)
+        }
+
+        // Requires an URI using Node.js's request library
+        function request(url, callback) {
+            get({uri: url}, function(error, res, data) {
+                try {
+                    callback(JSON.parse(data))
                 }
-               
-            }
-            for (var service in services){
-                setInterval((function(service) {
-                    return function () {
-                        var feed_url = hyve.feeds[service].feed_url.replace('_QUERY_', query);
-                        var feed_url = feed_url.replace('_APIKEY_', hyve.feeds[service].api_key);
-                        hyve.jsonp.fetch(feed_url,service,callback)
-                    }
-                }(service)),hyve.feeds[service].interval)
-            }   
-        },  
-        jsonp : {
-            counter: 0,
-            fetch : function(url,service,callback) {
-                var fn = 'callback_' + this.counter++;
-                window[fn] = this.pass(service,callback);
-                var url = url.replace('_CALLBACK_', fn);
-                var s = document.createElement('script');
-                s.setAttribute('src',url);
-                document.getElementsByTagName('head')[0].appendChild(s);
-            },
-            pass: function(service,callback){
-                return function(data){
-                    hyve.feeds[service].parse(data,callback)
+                catch(e){
+                    console.log({ }, e)
                 }
+            })
+        }
+
+        // Abstracts fetching URIs.
+        function fetch(url, service, callback) {
+            var fn = pass(service, callback)
+            var cb = !get && get_callback()
+            url    = format(url, { callback: cb })
+
+            var fetcher = get? request : jsonp
+            fetcher(url, fn)
+        }
+
+        // Higher-order function to process the fetched data
+        function pass(service, callback) {
+            return function(data) {
+                hyve.feeds[service].parse(data, callback)
             }
-        },
-        feeds: {
+        }
+
+        // Export the `fetch` function
+        return fetch
+    }()
+
+
+    // Exports data to the outside world
+    root.hyve      = hyve
+    hyve.stream    = stream
+    hyve.callbacks = []
+    hyve.feeds     = {
             twitter: {
                 interval : 2000,
-                feed_url :'http://search.twitter.com/search.json?q=_QUERY_&callback=_CALLBACK_',
+                feed_url :'http://search.twitter.com/search.json?q={{query}}{{#&callback=#callback}}',
                 parse : function(data,callback){
                     if (data.refresh_url != null){
-                        this.feed_url = 'http://search.twitter.com/search.json' + data.refresh_url+ '&callback=_CALLBACK_'
+                        this.feed_url = 'http://search.twitter.com/search.json'
+                                      + data.refresh_url
+                                      + '{{#&callback=#callback}}'
                     }
                     for (var i in data.results){
                         var item = data.results[i]
@@ -63,10 +115,10 @@
             },
             identica: {
                 interval : 6000,
-                feed_url :'http://identi.ca/api/search.json?q=_QUERY_&callback=_CALLBACK_',
+                feed_url :'http://identi.ca/api/search.json?q={{query}}{{#&callback=#callback}}',
                 parse : function(data,callback){
                     if (data.refresh_url != null){
-                        this.feed_url = 'http://identi.ca/api/search.json' + data.refresh_url+ '&callback=_CALLBACK_'
+                        this.feed_url = 'http://identi.ca/api/search.json' + data.refresh_url+ '{{#&callback=#callback}}'
                     }
                     for (var i in data.results){
                         var item = data.results[i]
@@ -88,14 +140,14 @@
             buzz: {
                 interval : 5000,
                 api_key: '',
-                feed_url :'https://www.googleapis.com/buzz/v1/activities/search?q=_QUERY_&alt=json&orderby=published&callback=_CALLBACK_&key=_APIKEY_',
+                feed_url :'https://www.googleapis.com/buzz/v1/activities/search?q={{query}}&alt=json&orderby=published{{#&callback=#callback}}{{#&key=#apikey}}',
                 parse : function(data,callback){
                     if (this.orig_url == null){
                         this.orig_url = this.feed_url
                     }
                     if (data.data.items != null){
                         var last_date = data.data.items[0].updated.split('.')[0]
-                        this.feed_url = this.orig_url.replace('_QUERY_','_QUERY_%20AND%20date%3E' + last_date)
+                        this.feed_url = this.orig_url.replace('{{query}}','{{query}}%20AND%20date%3E' + last_date)
                     }
                     for (var i in data.data.items){
                         if (data.data.items[i].title != '-'){
@@ -119,11 +171,11 @@
             },
             facebook: {
                 interval : 3000,
-                feed_url : 'https://graph.facebook.com/search?q=_QUERY_&type=post&callback=_CALLBACK_',
+                feed_url : 'https://graph.facebook.com/search?q={{query}}&type=post{{#&callback=#callback}}',
                 parse : function(data,callback){
                     if (data.data != null){
                         if (data.paging != null) {
-                            this.feed_url = data.paging.previous + '&callback=_CALLBACK_'
+                            this.feed_url = data.paging.previous + '{{#&callback=#callback}}'
                         }
                         for (var i in data.data){
                             var item = data.data[i]
@@ -147,7 +199,7 @@
             },
             reddit: {
                 interval : 5000,
-                feed_url : 'http://www.reddit.com/search.json?q=_QUERY_&sort=new&jsonp=_CALLBACK_',
+                feed_url : 'http://www.reddit.com/search.json?q={{query}}&sort=new{{#&jsonp=#callback}}',
                 parse : function(data,callback){
                     if (data.data.children[0]){
                         if (this.orig_url == null){
@@ -179,7 +231,7 @@
             flickr: {
                 interval : 10000,
                 api_key : '',
-                feed_url : 'http://api.flickr.com/services/feeds/photos_public.gne?format=json&tagmode=all&tags=_QUERY_&jsoncallback=_CALLBACK_&extras=date_upload,date_taken,owner_name,geo,tags,views',
+                feed_url : 'http://api.flickr.com/services/feeds/photos_public.gne?format=json&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&extras=date_upload,date_taken,owner_name,geo,tags,views',
                 parse : function(data,callback){
                     if (this.items_seen == null){
                         this.items_seen = {};
@@ -207,7 +259,7 @@
             },
             youtube: {
                 interval : 8000,
-                feed_url : 'http://gdata.youtube.com/feeds/api/videos?q=_QUERY_&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc&callback=_CALLBACK_',
+                feed_url : 'http://gdata.youtube.com/feeds/api/videos?q={{query}}&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
                 parse : function(data,callback){
                     if (this.items_seen == null){
                         this.items_seen = {};
@@ -234,9 +286,8 @@
                 }
             }
         }
-    }
-    window.hyve = hyve;
-})(window);
+})(this);
+
 
 /*
 $.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D' + query + '%26f%3Djson&_callback=?', function(data){                                  $('<h2>Wordpress</h2><hr>').appendTo($('body')).show('slow')
