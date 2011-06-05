@@ -1,0 +1,14 @@
+{ "name" : "hyve"
+, "description" : "Streams data from many social networks, to a normalized format"
+, "tags" : ["Facebeook", "Flickr", "Youtube", "Twitter", "Identica", "Buzz", "Reddit"]
+, "version" : "0.8"
+, "author" : "Lance R. Vick <lance@lrvick.net>"
+, "repository" :
+  { "type" : "git"
+  , "url" : "http://github.com/lrvick/hyve.git"
+  }
+, "bugs" :
+  { "web" : "http://github.com/lrvick/hyve/issues" }
+, "engines" : ["node >= 0.3.6"]
+, "main" : "./hyve"
+}

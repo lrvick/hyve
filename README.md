@@ -14,11 +14,12 @@
  
   * Plays nice with all major JS frameworks (jQuery, Mootools etc.)
   * Can run any javascript function of your choice against each posting retrieved.
-  * Outputs all data in a consistant format 
-    - See USMF <https://github.com/lrvick/tawlk/wiki/Unified-Social-Media-Format-(USMF)>
+  * Outputs all data in a consistant format - [USMF][] 
   * Supports Facebook, Twitter, Identica, Buzz, Flickr, Youtube and Reddit
   * Streams from all services (default), or optinoally only selected services
   * Runs in the browser or on the server (Node.js)
+
+[USMF]: https://github.com/lrvick/tawlk/wiki/Unified-Social-Media-Format-(USMF)
 
 
 ## Requirements ##
@@ -33,54 +34,69 @@ it from [npm][]:
 
 
 ## Usage / Installation ##
+  
+Arguments:
 
-  Arguments:
+```javascript
 
-        hyve.stream(search_terms,callback_function,optional_service_list)
+hyve.stream(search_terms,callback_function,optional_service_list)
 
-  Example Usage:
+```
 
-  1. Import hyve.js in your project
+Simple echo of Twitter, Facebook, and Buzz with pure JS:
+        
+```javascript    
+
+var myFunction = function(data){console.log(' + data.service +' : '+ data.text  +')}
+var myQuery = 'android'
+var myServices = ['Twitter','Facebook','Buzz']
     
-        <script src="hyve.js" type="text/javascript"></script>
-
-  2. Define a function to do somethign with incoming data
-
-    Simple echo of Twitter, Facebook, and Buzz with pure JS:
+hyve.stream(myQuery,myFunction,myServices)
         
-        var myFunction = function(data){console.log(' + data.service +' : '+ data.text  +')}
-        var myQuery = 'android'
-        var myServices = ['Twitter','Facebook','Buzz']
+```
+
+Simple Node.js example to output data from all services:
         
-        hyve.stream(myQuery,myFunction,myServices)
+```javascript        
 
-    Basic live search engine with jQuery:
+var hyve = require('hyve')
 
-        <!DOCTYPE HTML> 
-        <html> 
-            <head> 
-                <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> 
-                <script src="hyve.js" type="text/javascript"></script> 
-                <script type="text/javascript">
-                    $(document).ready(function() {    
-                        $('#search').bind("click",function(){
-                            query=$('#query').val();
-                            hyve.stream(query,function(data){
-                                $('#output').prepend($('<p>' + data.service +' : '+ data.text  +'</p>'))
-                            });
-                        });
+hyve.stream('android', function(data){
+    console.log(data.service +' : '+ data.text);
+})
+
+```
+
+Basic live search engine with jQuery:
+
+```html
+
+<!DOCTYPE HTML> 
+<html> 
+    <head> 
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> 
+        <script src="hyve.js" type="text/javascript"></script> 
+        <script type="text/javascript">
+            $(document).ready(function() {    
+                $('#search').bind("click",function(){
+                    query=$('#query').val();
+                    hyve.stream(query,function(data){
+                        $('#output').prepend($('<p>' + data.service +' : '+ data.text  +'</p>'))
                     });
-                </script> 
-            </head> 
-            <body> 
-                <div id="input"> 
-                    <input id="query" type="text" /> 
-                    <button id="search">search</button> 
-                </div> 
-                <div id="output"></div> 
-            </body> 
-        </html>         
-
+                });
+            });
+        </script> 
+    </head> 
+    <body> 
+        <div id="input"> 
+            <input id="query" type="text" /> 
+            <button id="search">search</button> 
+        </div> 
+        <div id="output"></div> 
+    </body> 
+</html>         
+        
+```
 
 ## Notes ##
     
