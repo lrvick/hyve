@@ -1,6 +1,6 @@
 (function(root) {
     var get   = typeof require == 'function' && require('request')
-    var hyve  = typeof exports != 'undefined'?  exports : { }
+    var hyve  = typeof exports != 'undefined'?  exports : root.hyve = { }
 
     // Fills a template with data from an object
     function format(string, data) {
@@ -83,7 +83,6 @@
 
 
     // Exports data to the outside world
-    root.hyve      = hyve
     hyve.stream    = stream
     hyve.callbacks = []
     hyve.feeds     = {
