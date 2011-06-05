@@ -2,6 +2,15 @@
     var get   = typeof require == 'function' && require('request')
     var hyve  = typeof exports != 'undefined'?  exports : root.hyve = { }
 
+    // ECMA-262 compatible Array#forEach polyfills
+    Array.prototype.forEach = Array.prototype.forEach
+    || function(fn, ctx) {
+           var len = this.length >>> 0
+           for (var i = 0; i < len; ++i)
+               if (i in this) fn.call(ctx, this[i], i, this)
+       }
+
+
     // Fills a template with data from an object
     function format(string, data) {
         return string.replace( /{{(?:#(.+?)#)?\s*(.+?)\s*}}/g
