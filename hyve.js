@@ -101,12 +101,12 @@
                             'user' : {
                                 'id' : item.from_user_id_str,
                                 'name' : item.from_user,
-                                'avatar' : item.profile_image_url,    
+                                'avatar' : item.profile_image_url
                             },
                             'id' : item.id_str,
                             'date' : item.created_at, //TODO: normalize
                             'text' : item.text,
-                            'source' : item.source,
+                            'source' : item.source
                         })
                     })
                 }
@@ -124,7 +124,7 @@
                             'user' : {
                                 'id' : item.from_user_id_str,
                                 'name' : item.from_user,
-                                'avatar' : item.profile_image_url,    
+                                'avatar' : item.profile_image_url
                             },
                             'id' : item.id_str,
                             'date' : item.created_at, //TODO: normalize
@@ -211,7 +211,7 @@
                                 'user' : {
                                     'id' : '',
                                     'name' : '',
-                                    'avatar' : ''    
+                                    'avatar' : ''
                                 },
                                 'id' : '',
                                 'date' : '', //TODO: normalize
@@ -239,7 +239,7 @@
                                 'user' : {
                                     'id' : '',
                                     'name' : '',
-                                    'avatar' : ''    
+                                    'avatar' : ''
                                 },
                                 'id' : '',
                                 'date' : '', //TODO: normalize
@@ -267,7 +267,7 @@
                                     'user' : {
                                         'id' : '',
                                         'name' : '',
-                                        'avatar' : ''    
+                                        'avatar' : ''
                                     },
                                     'id' : '',
                                     'date' : '', //TODO: normalize
