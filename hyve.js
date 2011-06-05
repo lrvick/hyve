@@ -95,8 +95,7 @@
                                       + data.refresh_url
                                       + '{{#&callback=#callback}}'
                     }
-                    for (var i in data.results){
-                        var item = data.results[i]
+                    data.results.forEach(function(item){
                         callback({
                             'service' : 'twitter',
                             'user' : {
@@ -109,7 +108,7 @@
                             'text' : item.text,
                             'source' : item.source,
                         })
-                    }
+                    })
                 }
             },
             identica: {
@@ -119,8 +118,7 @@
                     if (data.refresh_url != null){
                         this.feed_url = 'http://identi.ca/api/search.json' + data.refresh_url+ '{{#&callback=#callback}}'
                     }
-                    for (var i in data.results){
-                        var item = data.results[i]
+                    data.results.forEach(function(item){
                         callback({
                             'service' : 'identica',
                             'user' : {
@@ -133,7 +131,7 @@
                             'text' : item.text,
                             'source' : item.source
                         })
-                    }
+                    })
                 }
             },
             buzz: {
@@ -147,9 +145,8 @@
                     if (data.data != null){
                         var last_date = data.data.items[0].updated.split('.')[0]
                         this.feed_url = this.orig_url.replace('{{query}}','{{query}}%20AND%20date%3E' + last_date)
-                        for (var i in data.data.items){
-                            if (data.data.items[i].title != '-'){
-                                var item = data.data.items[i]
+                        data.data.items.forEach(function(item){
+                            if (item.title != '-'){
                                 callback({
                                     'service' : 'buzz',
                                     'user' : {
@@ -164,7 +161,7 @@
                                     'source' : item.object.links.alternate[0].href
                                 })
                             }
-                        }
+                        })
                     }
                 }
             },
@@ -176,8 +173,7 @@
                         if (data.paging != null) {
                             this.feed_url = data.paging.previous + '{{#&callback=#callback}}'
                         }
-                        for (var i in data.data){
-                            var item = data.data[i]
+                        data.data.forEach(function(item){
                             if (item.message != null){
                                 callback({
                                     'service' : 'facebook',
@@ -192,7 +188,7 @@
                                     'source' : 'http://facebook.com/'+item.from.id
                                 })
                             }
-                        }
+                        })
                     }
                 }
             },
@@ -208,8 +204,8 @@
                         if (before != null){
                             this.feed_url = this.orig_url + '&before=' + before 
                         }
-                        for (var i in data.data.children){
-                            var item = data.data.children[i].data
+                        data.data.children.forEach(function(item){
+                            item = item.data
                             callback({
                                 'service' : 'reddit',
                                 'user' : {
@@ -223,7 +219,7 @@
                                 'source' : '',
                                 'thumbnail':''
                             })
-                        }
+                        })
                     }
                 }
             },
@@ -235,8 +231,7 @@
                     if (this.items_seen == null){
                         this.items_seen = {};
                     }
-                    for (var i in data.items){
-                        var item = data.items[i]
+                    data.items && data.items.forEach(function(item){
                         if (this.items_seen[item.media.m] == null){
                             this.items_seen[item.media.m] = true
                             callback({
@@ -253,7 +248,7 @@
                                 'thumbnail':''
                             })
                         } 
-                    }
+                    }, this)
                 }
             },
             youtube: {
@@ -264,8 +259,7 @@
                         this.items_seen = {};
                     }
                     if (data.data != null){
-                        for (var i in data.data.items){
-                            var item = data.data.items[i]
+                        data.data.items.forEach(function(item){
                             if (this.items_seen[item.id] == null){
                                 this.items_seen[item.id] = true
                                 callback({
@@ -282,7 +276,7 @@
                                     'thumbnail':''
                                 })
                             } 
-                        }
+                        }, this)
                     }
                 }
             }
