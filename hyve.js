@@ -222,11 +222,11 @@
                                     'name' : '',
                                     'avatar' : ''
                                 },
-                                'id' : '',
-                                'date' : '', //TODO: normalize
+                                'id' : item.id,
+                                'date' : item.created_utc, //TODO: normalize
                                 'text' : item.title,
-                                'source' : '',
-                                'thumbnail':''
+                                'source' : item.url,
+                                'thumbnail':'http://reddit.com' + item.thumbnail
                             })
                         })
                     }
@@ -274,15 +274,46 @@
                                 callback({
                                     'service' : 'youtube',
                                     'user' : {
-                                        'id' : '',
-                                        'name' : '',
+                                        'id' : item.uploader,
+                                        'name' : item.uploader,
+                                        'profile' : 'http://youtube.com/' + item.uploader,
                                         'avatar' : ''
                                     },
-                                    'id' : '',
+                                    'id' : item.id,
                                     'date' : '', //TODO: normalize
-                                    'text' : item.description,
-                                    'source' : '',
-                                    'thumbnail':''
+                                    'text' : item.title,
+                                    'source' : 'http://youtu.be/'+ item.id,
+                                    'thumbnail':'http://i.ytimg.com/vi/' + item.id + '/hqdefault.jpg'
+                                })
+                            } 
+                        }, this)
+                    }
+                }
+            },
+            wordpress: {
+                interval : 10000,
+                feed_url : 'http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D{{query}}%26s%3Ddate%26f%3Djson{{#&_callback=#callback}}',
+                parse : function(data,callback){
+                    if (this.items_seen == null){
+                        this.items_seen = {};
+                    }
+                    if (data != null){
+                        data.value.items.forEach(function(item){
+                            if (this.items_seen[item.guid] == null){
+                                this.items_seen[item.guid] = true
+                                callback({
+                                    'service' : 'wordpress',
+                                    'user' : {
+                                        'id' : item.author,
+                                        'name' : item.author,
+                                        'profile' :'',
+                                        'avatar' : ''
+                                    },
+                                    'id' : item.id,
+                                    'date' : '', //TODO: normalize
+                                    'text' : item.title,
+                                    'description':item.description,
+                                    'source' : item.guid,
                                 })
                             } 
                         }, this)
