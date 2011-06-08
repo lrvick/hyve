@@ -32,6 +32,9 @@
                                      , apikey: options.api_key })
                 fetch(feed_url, service, callback)
             setInterval(function(){
+                var feed_url = format( options.feed_url,
+                                     { query:  query
+                                     , apikey: options.api_key })
                 fetch(feed_url, service, callback)
             }, options.interval)
         })
@@ -242,18 +245,19 @@
                     data.items && data.items.forEach(function(item){
                         if (this.items_seen[item.media.m] == null){
                             this.items_seen[item.media.m] = true
+                            console.log(item)
                             callback({
                                 'service' : 'flickr',
                                 'user' : {
-                                    'id' : '',
-                                    'name' : '',
+                                    'id' : item.author_id,
+                                    'name' : item.author,
                                     'avatar' : ''
                                 },
                                 'id' : '',
-                                'date' : '', //TODO: normalize
+                                'date' : item.published, //TODO: normalize
                                 'text' : item.description,
-                                'source' : '',
-                                'thumbnail':''
+                                'source' : item.link,
+                                'thumbnail':item.media.m
                             })
                         } 
                     }, this)
