@@ -120,8 +120,8 @@
                                 'text' : item.text,
                                 'source' : item.source
                             })
-                        }
-                    })
+                        })
+                    }
                 }
             },
             identica: {
