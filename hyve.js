@@ -99,7 +99,7 @@
     hyve.feeds     = {
             twitter: {
                 interval : 2000,
-                feed_url :'http://search.twitter.com/search.json?q={{query}}{{#&callback=#callback}}',
+                feed_url :'http://search.twitter.com/search.json?lang=en&q={{query}}{{#&callback=#callback}}',
                 parse : function(data,callback){
                     if (data.refresh_url != null){
                         this.feed_url = 'http://search.twitter.com/search.json'
@@ -126,7 +126,7 @@
             },
             identica: {
                 interval : 6000,
-                feed_url :'http://identi.ca/api/search.json?q={{query}}{{#&callback=#callback}}',
+                feed_url :'http://identi.ca/api/search.json?lang=en&q={{query}}{{#&callback=#callback}}',
                 parse : function(data,callback){
                     if (data.refresh_url != null){
                         this.feed_url = 'http://identi.ca/api/search.json' + data.refresh_url+ '{{#&callback=#callback}}'
