@@ -25,14 +25,13 @@
     function stream(query, callback, custom_services) {
         var services
         services = custom_services || Object.keys(hyve.feeds)
-
         services.forEach(function(service){
             var options = hyve.feeds[service.toLowerCase()]
-            setInterval(function(){
-                var feed_url = format( options.feed_url,
+            var feed_url = format( options.feed_url,
                                      { query:  query
                                      , apikey: options.api_key })
-
+                fetch(feed_url, service, callback)
+            setInterval(function(){
                 fetch(feed_url, service, callback)
             }, options.interval)
         })
@@ -312,7 +311,7 @@
                                     'id' : item.id,
                                     'date' : '', //TODO: normalize
                                     'text' : item.title,
-                                    'description':item.description,
+                                    'description':item.content,
                                     'source' : item.guid,
                                 })
                             } 
