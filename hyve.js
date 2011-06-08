@@ -106,19 +106,21 @@
                                       + data.refresh_url
                                       + '{{#&callback=#callback}}'
                     }
-                    data.results.forEach(function(item){
-                        callback({
-                            'service' : 'twitter',
-                            'user' : {
-                                'id' : item.from_user_id_str,
-                                'name' : item.from_user,
-                                'avatar' : item.profile_image_url
-                            },
-                            'id' : item.id_str,
-                            'date' : item.created_at, //TODO: normalize
-                            'text' : item.text,
-                            'source' : item.source
-                        })
+                    if (data.results != null){
+                        data.results.forEach(function(item){
+                            callback({
+                                'service' : 'twitter',
+                                'user' : {
+                                    'id' : item.from_user_id_str,
+                                    'name' : item.from_user,
+                                    'avatar' : item.profile_image_url
+                                },
+                                'id' : item.id_str,
+                                'date' : item.created_at, //TODO: normalize
+                                'text' : item.text,
+                                'source' : item.source
+                            })
+                        }
                     })
                 }
             },
