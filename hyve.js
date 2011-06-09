@@ -257,7 +257,7 @@
                                 },
                                 'id' : '',
                                 'date' : item.published, //TODO: normalize
-                                'text' : item.description,
+                                'text' : item.title,
                                 'source' : item.link,
                                 'thumbnail':item.media.m
                             })
