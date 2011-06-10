@@ -254,6 +254,49 @@
                     }
                 }
             },
+            picasa: {
+                interval : 15000,
+                feed_url : 'https://picasaweb.google.com/data/feed/api/all?q={{query}}&max-results=20&kind=photo&alt=json{{#&callback=#callback}}',
+                parse : function(data,callback){
+                    if (data.feed.entry){
+                        data.feed.entry.forEach(function(item){
+                             if (this.items_seen == null){
+                                this.items_seen = {};
+                            }
+                            if (this.items_seen[item.id.$t] == null){
+                                this.items_seen[item.id.$t] = true
+                                callback({
+                                    'service' : 'picasa',
+                                    'user' : {
+                                        'id' : item.author[0].gphoto$user.$t,
+                                        'name' : item.author[0].name.$t,
+                                        'avatar' : item.author[0].gphoto$thumbnail.$t
+                                    },
+                                    'id' : item.id.$t,
+                                    'date' : item.published.$t, //TODO: normalize
+                                    'text' : item.title.$t,
+                                    'source' : item.content.src,
+                                    'thumbnail':item.media$group.media$thumbnail[1].url
+                                })
+                            }
+                            if (this.orig_url == null){
+                                this.orig_url = this.feed_url
+                            }
+                            var datetime = item.published.$t.split('.')[0]
+                            var epoch = Date.parse(datetime)
+                            if (this.newest_epoch == null){
+                                this.newest_epoch = epoch
+                                this.newest_date = datetime
+                            } else if (this.epoch > this.newest_epoch){
+                                newest_epoch = epoch
+                                this.newest_date = datetime
+                            }
+                        })
+                        this.feed_url = this.orig_url.replace('{{query}}','{{query}}&published-min=' + newest_date)
+                        console.log(this.feed_url)
+                    }
+                }
+            },
             flickr: {
                 interval : 10000,
                 api_key : '',
