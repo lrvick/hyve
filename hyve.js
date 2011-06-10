@@ -47,12 +47,14 @@
         var services
         services = custom_services || Object.keys(hyve.feeds)
         services.forEach(function(service){
-            console.log(hyve.feeds[service.toLowerCase()].feed_url)
-            hyve.feeds[service.toLowerCase()].feed_url = hyve.feeds[service.toLowerCase()].orig_url
-            interval_id =  hyve.feeds[service.toLowerCase()]['lock'] 
-            clearInterval(interval_id) 
-            console.log('intervals cleared for ' + service)
-            console.log(hyve.feeds[service.toLowerCase()].feed_url)
+            if (hyve.feeds[service.toLowerCase()].lock != null) {
+                console.log(hyve.feeds[service.toLowerCase()].feed_url)
+                hyve.feeds[service.toLowerCase()].feed_url = hyve.feeds[service.toLowerCase()].orig_url
+                interval_id =  hyve.feeds[service.toLowerCase()].lock 
+                clearInterval(interval_id) 
+                console.log('intervals cleared for ' + service)
+                console.log(hyve.feeds[service.toLowerCase()].feed_url)
+            }
         })
     }
     // Fetches a JSON stream
