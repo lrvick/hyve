@@ -276,6 +276,7 @@
                                     'date' : item.published.$t, //TODO: normalize
                                     'text' : item.title.$t,
                                     'source' : item.content.src,
+                                    'source_img' : item.content.src,
                                     'thumbnail':item.media$group.media$thumbnail[1].url
                                 })
                             }
@@ -293,7 +294,6 @@
                             }
                         })
                         this.feed_url = this.orig_url.replace('{{query}}','{{query}}&published-min=' + newest_date)
-                        console.log(this.feed_url)
                     }
                 }
             },
@@ -319,6 +319,7 @@
                                 'date' : item.published, //TODO: normalize
                                 'text' : item.title,
                                 'source' : item.link,
+                                'source_img' : item.media.m.replace('_m','_b'),
                                 'thumbnail':item.media.m
                             })
                         } 
