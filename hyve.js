@@ -33,12 +33,12 @@
             var feed_url = format( options.feed_url,
                                      { query:  query
                                      , apikey: options.api_key })
-                fetch(feed_url, service, callback)
+                fetch(feed_url, service, query, callback)
             hyve.feeds[service.toLowerCase()].lock = setInterval(function(){
                 var feed_url = format( options.feed_url,
                                      { query:  query
                                      , apikey: options.api_key })
-                fetch(feed_url, service, callback)
+                fetch(feed_url, service, query, callback)
             }, options.interval)
         })
     }
@@ -48,12 +48,9 @@
         services = custom_services || Object.keys(hyve.feeds)
         services.forEach(function(service){
             if (hyve.feeds[service.toLowerCase()].lock != null) {
-                console.log(hyve.feeds[service.toLowerCase()].feed_url)
                 hyve.feeds[service.toLowerCase()].feed_url = hyve.feeds[service.toLowerCase()].orig_url
-                interval_id =  hyve.feeds[service.toLowerCase()].lock 
-                clearInterval(interval_id) 
-                console.log('intervals cleared for ' + service)
-                console.log(hyve.feeds[service.toLowerCase()].feed_url)
+                interval_id =  hyve.feeds[service.toLowerCase()].lock
+                clearInterval(interval_id)
             }
         })
     }
@@ -89,8 +86,8 @@
         }
 
         // Abstracts fetching URIs.
-        function fetch(url, service, callback) {
-            var fn = pass(service, callback)
+        function fetch(url, service, query, callback) {
+            var fn = pass(service, query, callback)
             var cb = !get && get_callback()
             url    = format(url, { callback: cb })
 
@@ -99,9 +96,9 @@
         }
 
         // Higher-order function to process the fetched data
-        function pass(service, callback) {
+        function pass(service, query, callback) {
             return function(data) {
-                hyve.feeds[service].parse(data, callback)
+                hyve.feeds[service].parse(data, query, callback)
             }
         }
 
@@ -118,7 +115,7 @@
             twitter: {
                 interval : 2000,
                 feed_url :'http://search.twitter.com/search.json?lang=en&q={{query}}{{#&callback=#callback}}',
-                parse : function(data,callback){
+                parse : function(data,query,callback){
                     if (data.refresh_url != null){
                         this.feed_url = 'http://search.twitter.com/search.json'
                                       + data.refresh_url
@@ -128,6 +125,7 @@
                         data.results.forEach(function(item){
                             callback({
                                 'service' : 'twitter',
+                                'query' : query,
                                 'user' : {
                                     'id' : item.from_user_id_str,
                                     'name' : item.from_user,
@@ -145,13 +143,14 @@
             identica: {
                 interval : 6000,
                 feed_url :'http://identi.ca/api/search.json?lang=en&q={{query}}{{#&callback=#callback}}',
-                parse : function(data,callback){
+                parse : function(data,query,callback){
                     if (data.refresh_url != null){
                         this.feed_url = 'http://identi.ca/api/search.json' + data.refresh_url+ '{{#&callback=#callback}}'
                     }
                     data.results.forEach(function(item){
                         callback({
                             'service' : 'identica',
+                            'query' : query,
                             'user' : {
                                 'id' : item.from_user_id_str,
                                 'name' : item.from_user,
@@ -169,7 +168,7 @@
                 interval : 5000,
                 api_key: '',
                 feed_url :'https://www.googleapis.com/buzz/v1/activities/search?q={{query}}&alt=json&orderby=published{{#&callback=#callback}}{{#&key=#apikey}}',
-                parse : function(data,callback){
+                parse : function(data,query,callback){
                     if (this.orig_url == null){
                         this.orig_url = this.feed_url
                     }
@@ -180,6 +179,7 @@
                             if (item.title != '-'){
                                 callback({
                                     'service' : 'buzz',
+                                    'query' : query,
                                     'user' : {
                                         'id' : item.actor.name,
                                         'name' : item.actor.name,
@@ -199,7 +199,7 @@
             facebook: {
                 interval : 3000,
                 feed_url : 'https://graph.facebook.com/search?q={{query}}&type=post{{#&callback=#callback}}',
-                parse : function(data,callback){
+                parse : function(data,query,callback){
                     if (data.data != null){
                         if (data.paging != null) {
                             this.feed_url = data.paging.previous + '{{#&callback=#callback}}'
@@ -208,6 +208,7 @@
                             if (item.message != null){
                                 callback({
                                     'service' : 'facebook',
+                                    'query' : query,
                                     'user' : {
                                         'id' : item.from.id,
                                         'name' : item.from.name,
@@ -226,19 +227,20 @@
             reddit: {
                 interval : 5000,
                 feed_url : 'http://www.reddit.com/search.json?q={{query}}&sort=new{{#&jsonp=#callback}}',
-                parse : function(data,callback){
+                parse : function(data,query,callback){
                     if (data.data.children[0]){
                         if (this.orig_url == null){
                             this.orig_url = this.feed_url
                         }
                         var before = data.data.children[0].data.name
                         if (before != null){
-                            this.feed_url = this.orig_url + '&before=' + before 
+                            this.feed_url = this.orig_url + '&before=' + before
                         }
                         data.data.children.forEach(function(item){
                             item = item.data
                             callback({
                                 'service' : 'reddit',
+                                'query' : query,
                                 'user' : {
                                     'id' : '',
                                     'name' : '',
@@ -257,7 +259,7 @@
             picasa: {
                 interval : 15000,
                 feed_url : 'https://picasaweb.google.com/data/feed/api/all?q={{query}}&max-results=20&kind=photo&alt=json{{#&callback=#callback}}',
-                parse : function(data,callback){
+                parse : function(data,query,callback){
                     if (data.feed.entry){
                         data.feed.entry.forEach(function(item){
                              if (this.items_seen == null){
@@ -267,6 +269,7 @@
                                 this.items_seen[item.id.$t] = true
                                 callback({
                                     'service' : 'picasa',
+                                    'query' : query,
                                     'user' : {
                                         'id' : item.author[0].gphoto$user.$t,
                                         'name' : item.author[0].name.$t,
@@ -301,7 +304,7 @@
                 interval : 10000,
                 api_key : '',
                 feed_url : 'http://api.flickr.com/services/feeds/photos_public.gne?format=json&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&extras=date_upload,date_taken,owner_name,geo,tags,views',
-                parse : function(data,callback){
+                parse : function(data,query,callback){
                     if (this.items_seen == null){
                         this.items_seen = {};
                     }
@@ -310,6 +313,7 @@
                             this.items_seen[item.media.m] = true
                             callback({
                                 'service' : 'flickr',
+                                'query' : query,
                                 'user' : {
                                     'id' : item.author_id,
                                     'name' : item.author,
@@ -322,14 +326,14 @@
                                 'source_img' : item.media.m.replace('_m','_b'),
                                 'thumbnail':item.media.m
                             })
-                        } 
+                        }
                     }, this)
                 }
             },
             youtube: {
                 interval : 8000,
                 feed_url : 'http://gdata.youtube.com/feeds/api/videos?q={{query}}&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
-                parse : function(data,callback){
+                parse : function(data,query,callback){
                     if (this.items_seen == null){
                         this.items_seen = {};
                     }
@@ -339,6 +343,7 @@
                                 this.items_seen[item.id] = true
                                 callback({
                                     'service' : 'youtube',
+                                    'query' : query,
                                     'user' : {
                                         'id' : item.uploader,
                                         'name' : item.uploader,
@@ -351,7 +356,7 @@
                                     'source' : 'http://youtu.be/'+ item.id,
                                     'thumbnail':'http://i.ytimg.com/vi/' + item.id + '/hqdefault.jpg'
                                 })
-                            } 
+                            }
                         }, this)
                     }
                 }
@@ -359,7 +364,7 @@
             wordpress: {
                 interval : 10000,
                 feed_url : 'http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D{{query}}%26s%3Ddate%26f%3Djson{{#&_callback=#callback}}',
-                parse : function(data,callback){
+                parse : function(data,query,callback){
                     if (this.items_seen == null){
                         this.items_seen = {};
                     }
@@ -369,6 +374,7 @@
                                 this.items_seen[item.guid] = true
                                 callback({
                                     'service' : 'wordpress',
+                                    'query' : query,
                                     'user' : {
                                         'id' : item.author,
                                         'name' : item.author,
@@ -381,19 +387,10 @@
                                     'description':item.content,
                                     'source' : item.guid,
                                 })
-                            } 
+                            }
                         }, this)
                     }
                 }
             }
         }
 })(this);
-
-
-/*
-$.getJSON('http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D' + query + '%26f%3Djson&_callback=?', function(data){                                  $('<h2>Wordpress</h2><hr>').appendTo($('body')).show('slow')
-    $.each(data.value.items, function(i,item) {
-        $('<p>'+ item.author + ' : ' + item.title + '</p>').hide().appendTo($('body')).show('slow')
-    });
-});
-});*/
