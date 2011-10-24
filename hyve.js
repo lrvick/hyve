@@ -20,6 +20,11 @@
                                           :  cond? m : '' })
     }
 
+    function epochDate(date){
+        var date_obj = new Date(date)
+        return date_obj.getTime()/1000
+    }
+
     // Pulls data from several streams and handle all them with the given
     // callback
     function stream(query, callback, custom_services) {
@@ -106,7 +111,6 @@
         return fetch
     }()
 
-
     // Exports data to the outside world
     hyve.stream    = stream
     hyve.stop      = stop
@@ -132,7 +136,7 @@
                                     'avatar' : item.profile_image_url
                                 },
                                 'id' : item.id_str,
-                                'date' : item.created_at, //TODO: normalize
+                                'date' : epochDate(item.created_at),
                                 'text' : item.text,
                                 'source' : item.source
                             })
@@ -157,7 +161,7 @@
                                 'avatar' : item.profile_image_url
                             },
                             'id' : item.id_str,
-                            'date' : item.created_at, //TODO: normalize
+                            'date' : epochDate(item.created_at),
                             'text' : item.text,
                             'source' : item.source
                         })
@@ -187,7 +191,7 @@
                                         'source' : item.actor.profileUrl
                                     },
                                     'id' : item.id.split(':')[3],
-                                    'date' : item.published, //TODO normalize
+                                    'date' : epochDate(item.published),
                                     'text' : item.title,
                                     'source' : item.object.links.alternate[0].href
                                 })
@@ -215,7 +219,7 @@
                                         'avatar' : 'http://graph.facebook.com/'+item.from.id+'/picture'
                                     },
                                     'id' : item.id,
-                                    'date' : item.created_time, //TODO: normalize
+                                    'date' : epochDate(item.created_time),
                                     'text' : item.message,
                                     'source' : 'http://facebook.com/'+item.from.id
                                 })
@@ -238,6 +242,7 @@
                         }
                         data.data.children.forEach(function(item){
                             item = item.data
+                            //console.log(item)
                             callback({
                                 'service' : 'reddit',
                                 'query' : query,
@@ -247,7 +252,7 @@
                                     'avatar' : ''
                                 },
                                 'id' : item.id,
-                                'date' : item.created_utc, //TODO: normalize
+                                'date' : item.created_utc,
                                 'text' : item.title,
                                 'source' : item.url,
                                 'thumbnail':'http://reddit.com' + item.thumbnail
@@ -276,7 +281,7 @@
                                         'avatar' : item.author[0].gphoto$thumbnail.$t
                                     },
                                     'id' : item.id.$t,
-                                    'date' : item.published.$t, //TODO: normalize
+                                    'date' : epochDate(item.published.$t),
                                     'text' : item.title.$t,
                                     'source' : item.content.src,
                                     'source_img' : item.content.src,
@@ -320,7 +325,7 @@
                                     'avatar' : ''
                                 },
                                 'id' : '',
-                                'date' : item.published, //TODO: normalize
+                                'date' : epochDate(item.published),
                                 'text' : item.title,
                                 'source' : item.link,
                                 'source_img' : item.media.m.replace('_m','_b'),
@@ -351,7 +356,7 @@
                                         'avatar' : ''
                                     },
                                     'id' : item.id,
-                                    'date' : '', //TODO: normalize
+                                    'date' : epochDate(item.uploaded),
                                     'text' : item.title,
                                     'source' : 'http://youtu.be/'+ item.id,
                                     'thumbnail':'http://i.ytimg.com/vi/' + item.id + '/hqdefault.jpg'
