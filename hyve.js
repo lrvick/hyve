@@ -10,6 +10,14 @@
                if (i in this) fn.call(ctx, this[i], i, this)
        }
 
+    // Converts an object to an array
+    function oc(a){
+       var obj = {};
+       for(var i=0;i<a.length;i++){
+           obj[a[i]]='';
+       }
+       return obj;
+    }
 
     // Fills a template with data from an object
     function format(string, data) {
@@ -20,6 +28,7 @@
                                           :  cond? m : '' })
     }
 
+    // Converts a date string to epoch time
     function epochDate(date){
         var date_obj = new Date(date)
         return date_obj.getTime()/1000
@@ -30,24 +39,39 @@
     function stream(query, callback, custom_services) {
         var services
         services = custom_services || Object.keys(hyve.feeds)
+        if ('foursquare' in oc(services)){
+            if (navigator.geolocation){
+                navigator.geolocation.getCurrentPosition(function(position){
+                    latLog = position.coords.latitude+","+position.coords.longitude
+                    hyve.feeds['foursquare'].latlog = latLog
+                    //console.log(hyve.feeds['foursquare'].latlog)
+                },function(){
+                    delete services.foursquare
+                })
+            }
+        }
         services.forEach(function(service){
             if ( hyve.feeds[service.toLowerCase()].orig_url == undefined ){
                 hyve.feeds[service.toLowerCase()].orig_url = hyve.feeds[service.toLowerCase()].feed_url
             }
             var options = hyve.feeds[service.toLowerCase()]
-            var feed_url = format( options.feed_url,
-                                     { query:  query
-                                     , apikey: options.api_key })
-                fetch(feed_url, service, query, callback)
-            hyve.feeds[service.toLowerCase()].lock = setInterval(function(){
+            function runFetch(){
                 var feed_url = format( options.feed_url,
                                      { query:  query
+                                     , latlog: options.latlog
+                                     , client_id: options.client_id
+                                     , client_secret: options.client_secret
                                      , apikey: options.api_key })
                 fetch(feed_url, service, query, callback)
+            }
+            runFetch()
+            hyve.feeds[service.toLowerCase()].lock = setInterval(function(){
+                runFetch()
             }, options.interval)
         })
     }
 
+    // Stops any running streams for iven services
     function stop(custom_services) {
         var services
         services = custom_services || Object.keys(hyve.feeds)
@@ -59,6 +83,7 @@
             }
         })
     }
+
     // Fetches a JSON stream
     var fetch = function() {
         var counter   = 0
@@ -394,6 +419,45 @@
                                 })
                             }
                         }, this)
+                    }
+                }
+            },
+            foursquare: {
+                interval : 5000,
+                client_id: '',
+                client_secret: '',
+                latlog:'',
+                feed_url :'https://api.foursquare.com/v2/venues/search?query={{query}}{{#&ll=#latlog}}&limit=20{{#&client_id=#client_id}}{{#&client_secret=#client_secret}}{{#&callback=#callback}}',
+                parse : function(data,query,callback){
+                    if (this.orig_url == null){
+                        this.orig_url = this.feed_url
+                    }
+                    if (data.response.groups[0].items != null){
+                        data.response.groups[0].items.forEach(function(item){
+                            if (item.contact != undefined){
+                                if ('twitter' in oc(item.contact)){
+                                    user_name = item.contact.twitter
+                                } else if ('formattedPhone' in oc(item.contact)){
+                                    user_name = item.contact.formattedPhone
+                                } else if ('phone' in oc(item.contact)){
+                                    user_name = item.contact.formattedPhone
+                                } else {
+                                    user_name = ''
+                                }
+                            }
+                            callback({
+                                'service' : 'foursquare',
+                                'geo' : item.location.lat+","+item.location.lng,
+                                'query' : query,
+                                'user' : {
+                                    'name' : user_name,
+                                },
+                                'id' : item.id,
+                                'text' : item.name,
+                                'visits' : item.stats.checkinsCount,
+                                'subscribers' : item.stats.usersCount,
+                            })
+                        })
                     }
                 }
             }
