@@ -266,14 +266,11 @@
                             this.feed_url = this.orig_url + '&before=' + before
                         }
                         data.data.children.forEach(function(item){
-                            item = item.data
-                            //console.log(item)
                             callback({
                                 'service' : 'reddit',
                                 'query' : query,
                                 'user' : {
-                                    'id' : '',
-                                    'name' : '',
+                                    'name' : item.author,
                                     'avatar' : ''
                                 },
                                 'id' : item.id,
