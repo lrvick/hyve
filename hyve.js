@@ -44,7 +44,6 @@
                 navigator.geolocation.getCurrentPosition(function(position){
                     latLog = position.coords.latitude+","+position.coords.longitude
                     hyve.feeds['foursquare'].latlog = latLog
-                    //console.log(hyve.feeds['foursquare'].latlog)
                 },function(){
                     delete services.foursquare
                 })
@@ -266,6 +265,7 @@
                             this.feed_url = this.orig_url + '&before=' + before
                         }
                         data.data.children.forEach(function(item){
+                            var item = item.data
                             callback({
                                 'service' : 'reddit',
                                 'query' : query,
@@ -420,41 +420,45 @@
                 }
             },
             foursquare: {
-                interval : 5000,
+                interval : 15000,
                 client_id: '',
                 client_secret: '',
                 latlog:'',
                 feed_url :'https://api.foursquare.com/v2/venues/search?query={{query}}{{#&ll=#latlog}}&limit=20{{#&client_id=#client_id}}{{#&client_secret=#client_secret}}{{#&callback=#callback}}',
                 parse : function(data,query,callback){
-                    if (this.orig_url == null){
-                        this.orig_url = this.feed_url
+                    if (this.items_seen == null){
+                        this.items_seen = {};
                     }
                     if (data.response.groups[0].items != null){
                         data.response.groups[0].items.forEach(function(item){
-                            if (item.contact != undefined){
-                                if ('twitter' in oc(item.contact)){
-                                    user_name = item.contact.twitter
-                                } else if ('formattedPhone' in oc(item.contact)){
-                                    user_name = item.contact.formattedPhone
-                                } else if ('phone' in oc(item.contact)){
-                                    user_name = item.contact.formattedPhone
-                                } else {
-                                    user_name = ''
+                            var item_key = item.id+"_"+item.stats.checkinsCount
+                            if (this.items_seen[item_key] == null){
+                                this.items_seen[item_key] = true
+                                if (item.contact != undefined){
+                                    if ('twitter' in oc(item.contact)){
+                                        user_name = item.contact.twitter
+                                    } else if (item.contact.formattedPhone){
+                                        user_name = item.contact.formattedPhone
+                                    } else if (item.contact.phone){
+                                        user_name = item.contact.formattedPhone
+                                    } else {
+                                        user_name = ''
+                                    }
                                 }
+                                callback({
+                                    'service' : 'foursquare',
+                                    'geo' : item.location.lat+","+item.location.lng,
+                                    'query' : query,
+                                    'user' : {
+                                        'name' : user_name,
+                                    },
+                                    'id' : item.id,
+                                    'text' : item.name,
+                                    'visits' : item.stats.checkinsCount,
+                                    'subscribers' : item.stats.usersCount,
+                                })
                             }
-                            callback({
-                                'service' : 'foursquare',
-                                'geo' : item.location.lat+","+item.location.lng,
-                                'query' : query,
-                                'user' : {
-                                    'name' : user_name,
-                                },
-                                'id' : item.id,
-                                'text' : item.name,
-                                'visits' : item.stats.checkinsCount,
-                                'subscribers' : item.stats.usersCount,
-                            })
-                        })
+                        }, this)
                     }
                 }
             }
