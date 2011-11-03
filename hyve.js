@@ -261,8 +261,8 @@
                 feed_url : 'https://picasaweb.google.com/data/feed/api/all?q={{query}}&max-results=20&kind=photo&alt=json{{#&callback=#callback}}',
                 parse : function(data,query,callback){
                     var newest_date
-                    if (newest_date != null){
-                        console.log(newest_date)
+                    var newest_epoch
+                    if (this.newest_date != null){
                         this.feed_url = this.orig_url + '&published-min=' + this.newest_date
                     }
                     if (data.feed.entry){
@@ -293,8 +293,7 @@
                             }
                             var datetime = item.published.$t.split('.')[0]
                             var epoch = Date.parse(datetime)
-                            console.log(epoch)
-                            if (this.newest_epoch == null){
+                            if (!this.newest_epoch){
                                 this.newest_epoch = epoch
                                 this.newest_date = datetime
                             } else if (this.epoch > this.newest_epoch){
