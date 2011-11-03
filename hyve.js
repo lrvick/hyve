@@ -37,31 +37,37 @@
     // Pulls data from several streams and handle all them with the given
     // callback
     function stream(query, callback, custom_services) {
-        var services
         services = custom_services || Object.keys(hyve.feeds)
-        if ('foursquare' in oc(services)){
-            if (navigator.geolocation){
-                navigator.geolocation.getCurrentPosition(function(position){
-                    latLog = position.coords.latitude+","+position.coords.longitude
-                    hyve.feeds['foursquare'].latlog = latLog
-                },function(){
-                    delete services.foursquare
-                })
-            }
-        }
         services.forEach(function(service){
             if ( hyve.feeds[service.toLowerCase()].orig_url == undefined ){
                 hyve.feeds[service.toLowerCase()].orig_url = hyve.feeds[service.toLowerCase()].feed_url
             }
             var options = hyve.feeds[service.toLowerCase()]
-            function runFetch(){
-                var feed_url = format( options.feed_url,
+            var runFetch = function(){
+                if (service == 'foursquare'){
+                    if (navigator.geolocation){
+                        navigator.geolocation.getCurrentPosition(function(position){
+                            latLog = position.coords.latitude+","+position.coords.longitude
+                            hyve.feeds['foursquare'].latlog = latLog
+                            var feed_url = format( options.feed_url,
+                                             { query:  query
+                                             , latlog: options.latlog
+                                             , client_id: options.client_id
+                                             , client_secret: options.client_secret
+                                             , apikey: options.api_key })
+                            fetch(feed_url, service, query, callback)
+                        },function(){
+                            delete services.foursquare
+                        })
+                    }
+                } else {
+                    var feed_url = format( options.feed_url,
                                      { query:  query
-                                     , latlog: options.latlog
                                      , client_id: options.client_id
                                      , client_secret: options.client_secret
                                      , apikey: options.api_key })
-                fetch(feed_url, service, query, callback)
+                    fetch(feed_url, service, query, callback)
+                }
             }
             runFetch()
             hyve.feeds[service.toLowerCase()].lock = setInterval(function(){
