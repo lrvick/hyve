@@ -125,7 +125,6 @@
             var fn = pass(service, query, callback)
             var cb = !get && get_callback()
             url    = format(url, { callback: cb })
-
             var fetcher = get? request : jsonp
             fetcher(url, fn)
         }
@@ -198,38 +197,6 @@
                     })
                 }
             },
-            buzz: {
-                interval : 5000,
-                api_key: '',
-                feed_url :'https://www.googleapis.com/buzz/v1/activities/search?q={{query}}&alt=json&orderby=published{{#&callback=#callback}}{{#&key=#apikey}}',
-                parse : function(data,query,callback){
-                    if (this.orig_url == null){
-                        this.orig_url = this.feed_url
-                    }
-                    if (data.data != null){
-                        var last_date = data.data.items[0].updated.split('.')[0]
-                        this.feed_url = this.orig_url.replace('{{query}}','{{query}}%20AND%20date%3E' + last_date)
-                        data.data.items.forEach(function(item){
-                            if (item.title != '-'){
-                                callback({
-                                    'service' : 'buzz',
-                                    'query' : query,
-                                    'user' : {
-                                        'id' : item.actor.name,
-                                        'name' : item.actor.name,
-                                        'avatar' : item.actor.thumbnailUrl,
-                                        'source' : item.actor.profileUrl
-                                    },
-                                    'id' : item.id.split(':')[3],
-                                    'date' : epochDate(item.published),
-                                    'text' : item.title,
-                                    'source' : item.object.links.alternate[0].href
-                                })
-                            }
-                        })
-                    }
-                }
-            },
             facebook: {
                 interval : 3000,
                 feed_url : 'https://graph.facebook.com/search?q={{query}}&type=post{{#&callback=#callback}}',
@@ -293,6 +260,11 @@
                 interval : 15000,
                 feed_url : 'https://picasaweb.google.com/data/feed/api/all?q={{query}}&max-results=20&kind=photo&alt=json{{#&callback=#callback}}',
                 parse : function(data,query,callback){
+                    var newest_date
+                    if (newest_date != null){
+                        console.log(newest_date)
+                        this.feed_url = this.orig_url + '&published-min=' + this.newest_date
+                    }
                     if (data.feed.entry){
                         data.feed.entry.forEach(function(item){
                              if (this.items_seen == null){
@@ -321,6 +293,7 @@
                             }
                             var datetime = item.published.$t.split('.')[0]
                             var epoch = Date.parse(datetime)
+                            console.log(epoch)
                             if (this.newest_epoch == null){
                                 this.newest_epoch = epoch
                                 this.newest_date = datetime
@@ -328,8 +301,7 @@
                                 newest_epoch = epoch
                                 this.newest_date = datetime
                             }
-                        })
-                        this.feed_url = this.orig_url.replace('{{query}}','{{query}}&published-min=' + newest_date)
+                        }, this)
                     }
                 }
             },
