@@ -54,18 +54,28 @@
                                              , latlog: options.latlog
                                              , client_id: options.client_id
                                              , client_secret: options.client_secret
-                                             , apikey: options.api_key })
+                                             , result_type: options.result_type
+                                             , api_key: options.api_key })
                             fetch(feed_url, service, query, callback)
                         },function(){
                             delete services.foursquare
                         })
                     }
                 } else {
+                    if (service == 'flickr'){
+                        if (options.api_key){
+                            options.url_suffix = options.url_suffix_auth
+                        } else {
+                            options.url_suffix = options.url_suffix_anon
+                        }
+                    }
                     var feed_url = format( options.feed_url,
                                      { query:  query
+                                     , url_suffix: options.url_suffix
                                      , client_id: options.client_id
                                      , client_secret: options.client_secret
-                                     , apikey: options.api_key })
+                                     , result_type: options.result_type
+                                     , api_key: options.api_key })
                     fetch(feed_url, service, query, callback)
                 }
             }
@@ -147,7 +157,8 @@
     hyve.feeds     = {
             twitter: {
                 interval : 2000,
-                feed_url :'http://search.twitter.com/search.json?lang=en&q={{query}}{{#&callback=#callback}}',
+                result_type : 'mixed', // mixed, recent, popular
+                feed_url :'http://search.twitter.com/search.json?q={{query}}&lang=en&{{#&result_type=#result_type}}{{#&callback=#callback}}',
                 parse : function(data,query,callback){
                     if (data.refresh_url != null){
                         this.feed_url = 'http://search.twitter.com/search.json'
@@ -156,6 +167,13 @@
                     }
                     if (data.results != null){
                         data.results.forEach(function(item){
+                            var weight = 0
+                            if (item.metadata.result_type == 'popular'){
+                                weight = 1
+                            }
+                            if (item.metadata.recent_retweets){
+                                weight = weight + item.metadata.recent_retweets
+                            }
                             callback({
                                 'service' : 'twitter',
                                 'query' : query,
@@ -167,7 +185,8 @@
                                 'id' : item.id_str,
                                 'date' : epochDate(item.created_at),
                                 'text' : item.text,
-                                'source' : item.source
+                                'source' : item.source,
+                                'weight' : weight
                             })
                         })
                     }
@@ -192,7 +211,8 @@
                             'id' : item.id_str,
                             'date' : epochDate(item.created_at),
                             'text' : item.text,
-                            'source' : item.source
+                            'source' : item.source,
+                            'weight' : 1
                         })
                     })
                 }
@@ -218,7 +238,8 @@
                                     'id' : item.id,
                                     'date' : epochDate(item.created_time),
                                     'text' : item.message,
-                                    'source' : 'http://facebook.com/'+item.from.id
+                                    'source' : 'http://facebook.com/'+item.from.id,
+                                    'weight' : 1
                                 })
                             }
                         })
@@ -227,7 +248,8 @@
             },
             reddit: {
                 interval : 5000,
-                feed_url : 'http://www.reddit.com/search.json?q={{query}}&sort=new{{#&jsonp=#callback}}',
+                result_type : 'relevance', // new, relevence, top
+                feed_url : 'http://www.reddit.com/search.json?q={{query}}{{#&sort=#result_type}}{{#&jsonp=#callback}}',
                 parse : function(data,query,callback){
                     if (data.data.children[0]){
                         if (this.orig_url == null){
@@ -239,6 +261,19 @@
                         }
                         data.data.children.forEach(function(item){
                             var item = item.data
+                            var weight = 0
+                            if (item.score){
+                                weight = item.score
+                            }
+                            if (item.ups){
+                                weight = weight + item.ups
+                            }
+                            if (item.num_comments){
+                                weight = weight + item.num_comments
+                            }
+                            if (item.likes){
+                                weight = weight + item.likes
+                            }
                             callback({
                                 'service' : 'reddit',
                                 'query' : query,
@@ -250,7 +285,8 @@
                                 'date' : item.created_utc,
                                 'text' : item.title,
                                 'source' : item.url,
-                                'thumbnail':'http://reddit.com' + item.thumbnail
+                                'thumbnail':'http://reddit.com' + item.thumbnail,
+                                'weight' : weight
                             })
                         })
                     }
@@ -262,16 +298,38 @@
                 parse : function(data,query,callback){
                     var newest_date
                     var newest_epoch
+                    if (this.orig_url == null){
+                        this.orig_url = this.feed_url
+                    }
                     if (this.newest_date != null){
                         this.feed_url = this.orig_url + '&published-min=' + this.newest_date
                     }
+                    if (this.items_seen == null){
+                        this.items_seen = {};
+                    }
                     if (data.feed.entry){
                         data.feed.entry.forEach(function(item){
-                             if (this.items_seen == null){
-                                this.items_seen = {};
-                            }
                             if (this.items_seen[item.id.$t] == null){
+                                var datetime = item.published.$t.split('.')[0]
+                                var epoch = Date.parse(datetime)
+                                if (!this.newest_epoch){
+                                    this.newest_epoch = epoch
+                                    this.newest_date = datetime
+                                } else if (this.epoch > this.newest_epoch){
+                                    newest_epoch = epoch
+                                    this.newest_date = datetime
+                                }
                                 this.items_seen[item.id.$t] = true
+                                var weight = 0
+                                if (item.summary.$t){
+                                    text = item.summary.$t
+                                    weight = 1
+                                } else {
+                                    text = item.title.$t
+                                }
+                                if (item.gphoto$commentCoun){
+                                    weight = weight + item.gphoto$commentCount
+                                }
                                 callback({
                                     'service' : 'picasa',
                                     'query' : query,
@@ -285,20 +343,9 @@
                                     'text' : item.title.$t,
                                     'source' : item.content.src,
                                     'source_img' : item.content.src,
-                                    'thumbnail':item.media$group.media$thumbnail[1].url
+                                    'thumbnail':item.media$group.media$thumbnail[1].url,
+                                    'weight': weight,
                                 })
-                            }
-                            if (this.orig_url == null){
-                                this.orig_url = this.feed_url
-                            }
-                            var datetime = item.published.$t.split('.')[0]
-                            var epoch = Date.parse(datetime)
-                            if (!this.newest_epoch){
-                                this.newest_epoch = epoch
-                                this.newest_date = datetime
-                            } else if (this.epoch > this.newest_epoch){
-                                newest_epoch = epoch
-                                this.newest_date = datetime
                             }
                         }, this)
                     }
@@ -306,29 +353,56 @@
             },
             flickr: {
                 interval : 10000,
+                result_type : 'date-posted-desc',  // date-posted-asc, date-posted-desc, date-taken-asc, date-taken-desc, interestingness-desc, interestingness-asc, relevance
                 api_key : '',
-                feed_url : 'http://api.flickr.com/services/feeds/photos_public.gne?format=json&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&extras=date_upload,date_taken,owner_name,geo,tags,views',
+                url_suffix_auth : 'rest/?method=flickr.photos.search&',
+                url_suffix_anon : 'feeds/photos_public.gne?',
+                feed_url : 'http://api.flickr.com/services/{{url_suffix}}format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}',
                 parse : function(data,query,callback){
                     if (this.items_seen == null){
                         this.items_seen = {};
                     }
-                    data.items && data.items.forEach(function(item){
-                        if (this.items_seen[item.media.m] == null){
-                            this.items_seen[item.media.m] = true
+                    if (this.api_key){
+                        var items = data.photos.photo
+                    } else {
+                        var items = data.items
+                    }
+                    items && items.forEach(function(item){
+                        if (this.api_key){
+                            var id = item.id
+                            var thumbnail = item.url_m
+                            var source_img = item.url_m.replace('.jpg','_b.jpg')
+                            var username = item.ownername
+                            var userid = item.owner
+                        } else {
+                            var id = item.media.m
+                            var thumbnail = item.media.m
+                            var source_img = item.media.m.replace('_m','_b')
+                            var source = item.media.m.replace('_m','_b')
+                            var username = item.author
+                            var userid = item.author_id
+                        }
+                        var weight = 0
+                        if (item.views){
+                            weight = item.views
+                        }
+                        if (this.items_seen[id] == null){
+                            this.items_seen[id] = true
                             callback({
                                 'service' : 'flickr',
                                 'query' : query,
                                 'user' : {
-                                    'id' : item.author_id,
-                                    'name' : item.author,
+                                    'id' : userid,
+                                    'name' : username,
                                     'avatar' : ''
                                 },
-                                'id' : '',
+                                'id' : id,
                                 'date' : epochDate(item.published),
                                 'text' : item.title,
                                 'source' : item.link,
-                                'source_img' : item.media.m.replace('_m','_b'),
-                                'thumbnail':item.media.m
+                                'source_img' : source_img,
+                                'thumbnail': thumbnail,
+                                'weight' : weight
                             })
                         }
                     }, this)
@@ -336,15 +410,21 @@
             },
             youtube: {
                 interval : 8000,
-                feed_url : 'http://gdata.youtube.com/feeds/api/videos?q={{query}}&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
+                result_type : 'videos',  //  videos,top_rated, most_popular, standard_feeds/most_recent, most_dicsussed, most_responded, recently_featured, on_the_web
+                feed_suffix : '', // '', standardfeeds/ - if '' result_type must be 'videos'
+                feed_url : 'http://gdata.youtube.com/feeds/api/{{feed_suffix}}{{result_type}}?q={{query}}&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
                 parse : function(data,query,callback){
                     if (this.items_seen == null){
                         this.items_seen = {};
                     }
-                    if (data.data != null){
+                    if (data.data.items != null){
                         data.data.items.forEach(function(item){
                             if (this.items_seen[item.id] == null){
                                 this.items_seen[item.id] = true
+                                var weight = 0
+                                if (item.views){
+                                    var weight = item.stats.userCount
+                                }
                                 callback({
                                     'service' : 'youtube',
                                     'query' : query,
@@ -358,7 +438,8 @@
                                     'date' : epochDate(item.uploaded),
                                     'text' : item.title,
                                     'source' : 'http://youtu.be/'+ item.id,
-                                    'thumbnail':'http://i.ytimg.com/vi/' + item.id + '/hqdefault.jpg'
+                                    'thumbnail':'http://i.ytimg.com/vi/' + item.id + '/hqdefault.jpg',
+                                    'weight' : weight,
                                 })
                             }
                         }, this)
@@ -390,6 +471,7 @@
                                     'text' : item.title,
                                     'description':item.content,
                                     'source' : item.guid,
+                                    'weight' : 1,
                                 })
                             }
                         }, this)
@@ -422,6 +504,10 @@
                                         user_name = ''
                                     }
                                 }
+                                var weight = 0
+                                if (item.views){
+                                    var weight = item.stats.userCount
+                                }
                                 callback({
                                     'service' : 'foursquare',
                                     'geo' : item.location.lat+","+item.location.lng,
@@ -433,6 +519,7 @@
                                     'text' : item.name,
                                     'visits' : item.stats.checkinsCount,
                                     'subscribers' : item.stats.usersCount,
+                                    'weight' : weight,
                                 })
                             }
                         }, this)
