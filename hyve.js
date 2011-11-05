@@ -43,39 +43,19 @@
                 hyve.feeds[service.toLowerCase()].orig_url = hyve.feeds[service.toLowerCase()].feed_url
             }
             var options = hyve.feeds[service.toLowerCase()]
+            if (hyve.feeds[service.toLowerCase()].format_url){
+                var feed_url = format(options.feed_url,hyve.feeds[service.toLowerCase()].format_url(query))
+            } else {
+                var feed_url = format( options.feed_url,
+                                 { query:  query
+                                 , url_suffix: options.url_suffix
+                                 , result_type: options.result_type
+                                 , api_key: options.api_key })
+            }
             var runFetch = function(){
-                if (service == 'foursquare'){
-                    if (navigator.geolocation){
-                        navigator.geolocation.getCurrentPosition(function(position){
-                            latLog = position.coords.latitude+","+position.coords.longitude
-                            hyve.feeds['foursquare'].latlog = latLog
-                            var feed_url = format( options.feed_url,
-                                             { query:  query
-                                             , latlog: options.latlog
-                                             , client_id: options.client_id
-                                             , client_secret: options.client_secret
-                                             , result_type: options.result_type
-                                             , api_key: options.api_key })
-                            fetch(feed_url, service, query, callback)
-                        },function(){
-                            delete services.foursquare
-                        })
-                    }
+                if (hyve.feeds[service.toLowerCase()].fetch_url){
+                    hyve.feeds[service.toLowerCase()].fetch_url(service,query,callback)
                 } else {
-                    if (service == 'flickr'){
-                        if (options.api_key){
-                            options.url_suffix = options.url_suffix_auth
-                        } else {
-                            options.url_suffix = options.url_suffix_anon
-                        }
-                    }
-                    var feed_url = format( options.feed_url,
-                                     { query:  query
-                                     , url_suffix: options.url_suffix
-                                     , client_id: options.client_id
-                                     , client_secret: options.client_secret
-                                     , result_type: options.result_type
-                                     , api_key: options.api_key })
                     fetch(feed_url, service, query, callback)
                 }
             }
@@ -358,6 +338,17 @@
                 url_suffix_auth : 'rest/?method=flickr.photos.search&',
                 url_suffix_anon : 'feeds/photos_public.gne?',
                 feed_url : 'http://api.flickr.com/services/{{url_suffix}}format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}',
+                format_url : function(query){
+                    if (this.api_key){
+                        var url_suffix = this.url_suffix_auth
+                    } else {
+                        var url_suffix = this.url_suffix_anon
+                    }
+                    return { query: query
+                           , url_suffix: url_suffix
+                           , result_type: this.result_type
+                           , api_key: this.api_key }
+                },
                 parse : function(data,query,callback){
                     if (this.items_seen == null){
                         this.items_seen = {};
@@ -482,8 +473,23 @@
                 interval : 15000,
                 client_id: '',
                 client_secret: '',
-                latlog:'',
                 feed_url :'https://api.foursquare.com/v2/venues/search?query={{query}}{{#&ll=#latlog}}&limit=20{{#&client_id=#client_id}}{{#&client_secret=#client_secret}}{{#&callback=#callback}}',
+                fetch_url : function(service,query,callback){
+                    if (navigator.geolocation){
+                        var options = this
+                        navigator.geolocation.getCurrentPosition(function(position){
+                            latlog = position.coords.latitude+","+position.coords.longitude
+                            var feed_url = format( options.feed_url,
+                                             { query:  query
+                                             , latlog: latlog
+                                             , client_id: options.client_id
+                                             , client_secret: options.client_secret })
+                            fetch(feed_url, service, query, callback)
+                        },function(){
+                            delete services.foursquare
+                        })
+                    }
+                },
                 parse : function(data,query,callback){
                     if (this.items_seen == null){
                         this.items_seen = {};
