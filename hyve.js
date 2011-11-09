@@ -79,6 +79,61 @@
         })
     }
 
+    // Manually re-classify items as needed, check for dupes, then send to callback
+    function process(item,callback){
+        if (item.links != undefined){
+            var processed_orig
+            item.links.forEach(function(link){
+                var new_item = item
+                if (link.search(/youtu.be|youtube.com/i) != -1){
+                    new_item.origin = item.service
+                    new_item.origin_id = item.id
+                    new_item.origin_source = item.source
+                    new_item.service = 'youtube'
+                    new_item.type = 'video'
+                    if (item.source.search(/youtu.be/i) != -1){
+                        new_item.id = item.source.replace(/.*be\/(.*)/ig,"$1")
+                    }
+                    if (link.search(/youtube.com/i) != -1){
+                        new_item.id = item.source.replace(/.*com\/.*v=([a-zA-Z0-9_]+).*/ig,"$1")
+                    }
+                    new_item.source = 'http://youtu.be/'+item.id
+                    callback(new_item)
+                } else if (link.search(/vimeo.com/i) != -1){
+                    new_item.origin = item.service
+                    new_item.origin_id = item.id
+                    new_item.origin_source = item.source
+                    new_item.service = 'vimeo'
+                    new_item.type = 'video'
+                    new_item.id = item.source.replace(/.*com\/(.*)/ig,"$1")
+                    callback(new_item)
+                } else if (link.search(/imgur.com/i) != -1){
+                    new_item.origin = item.service
+                    new_item.origin_id = item.id
+                    new_item.origin_source = item.source
+                    new_item.service = 'imgur'
+                    new_item.type = 'image'
+                    new_item.id = item.source.replace(/.*com\/([A-Za-z0-9]+).*/ig,"$1")
+                    new_item.source = 'http://imgur.com/'+item.id
+                    new_item.source_img = 'http://imgur.com/'+item.id+'.jpg'
+                    new_item.thumbnail = 'http://imgur.com/'+item.id+'l.jpg'
+                    callback(new_item)
+                } else if (link.search(/.jpg|.png|.gif/i) != -1){
+                    new_item.type = 'image'
+                    new_item.source_img = item.source
+                    new_item.thumbnail = item.source
+                    callback(new_item)
+                }
+                if (processed_orig != true && new_item.type == item.type){
+                    callback(item)
+                    var processed_orig = true
+                }
+            })
+        } else {
+            callback(item)
+        }
+    }
+
     // Fetches a JSON stream
     var fetch = function() {
         var counter   = 0
@@ -130,6 +185,7 @@
         return fetch
     }()
 
+
     // Exports data to the outside world
     hyve.stream    = stream
     hyve.stop      = stop
@@ -154,8 +210,10 @@
                             if (item.metadata.recent_retweets){
                                 weight = weight + item.metadata.recent_retweets
                             }
-                            callback({
+                            links = item.text.match(/(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/gi)
+                            process({
                                 'service' : 'twitter',
+                                'type' : 'text',
                                 'query' : query,
                                 'user' : {
                                     'id' : item.from_user_id_str,
@@ -165,9 +223,10 @@
                                 'id' : item.id_str,
                                 'date' : epochDate(item.created_at),
                                 'text' : item.text,
-                                'source' : item.source,
+                                'links' : links,
+                                'source' : 'http://twitter.com/'+item.from_user+'/status/'+item.id,
                                 'weight' : weight
-                            })
+                            },callback)
                         })
                     }
                 }
@@ -180,8 +239,9 @@
                         this.feed_url = 'http://identi.ca/api/search.json' + data.refresh_url+ '{{#&callback=#callback}}'
                     }
                     data.results.forEach(function(item){
-                        callback({
+                        process({
                             'service' : 'identica',
+                            'type' : 'text',
                             'query' : query,
                             'user' : {
                                 'id' : item.from_user_id_str,
@@ -193,7 +253,7 @@
                             'text' : item.text,
                             'source' : item.source,
                             'weight' : 1
-                        })
+                        },callback)
                     })
                 }
             },
@@ -207,8 +267,9 @@
                         }
                         data.data.forEach(function(item){
                             if (item.message != null){
-                                callback({
+                                process({
                                     'service' : 'facebook',
+                                    'type' : 'text',
                                     'query' : query,
                                     'user' : {
                                         'id' : item.from.id,
@@ -220,7 +281,7 @@
                                     'text' : item.message,
                                     'source' : 'http://facebook.com/'+item.from.id,
                                     'weight' : 1
-                                })
+                                },callback)
                             }
                         })
                     }
@@ -254,8 +315,9 @@
                             if (item.likes){
                                 weight = weight + item.likes
                             }
-                            callback({
+                            process({
                                 'service' : 'reddit',
+                                'type' : 'link',
                                 'query' : query,
                                 'user' : {
                                     'name' : item.author,
@@ -264,10 +326,11 @@
                                 'id' : item.id,
                                 'date' : item.created_utc,
                                 'text' : item.title,
+                                'links'  : [item.url],
                                 'source' : item.url,
                                 'thumbnail':'http://reddit.com' + item.thumbnail,
                                 'weight' : weight
-                            })
+                            },callback)
                         })
                     }
                 }
@@ -310,8 +373,9 @@
                                 if (item.gphoto$commentCoun){
                                     weight = weight + item.gphoto$commentCount
                                 }
-                                callback({
+                                process({
                                     'service' : 'picasa',
+                                    'type' : 'image',
                                     'query' : query,
                                     'user' : {
                                         'id' : item.author[0].gphoto$user.$t,
@@ -325,7 +389,7 @@
                                     'source_img' : item.content.src,
                                     'thumbnail':item.media$group.media$thumbnail[1].url,
                                     'weight': weight,
-                                })
+                                },callback)
                             }
                         }, this)
                     }
@@ -379,8 +443,9 @@
                         }
                         if (this.items_seen[id] == null){
                             this.items_seen[id] = true
-                            callback({
+                            process({
                                 'service' : 'flickr',
+                                'type' : 'image',
                                 'query' : query,
                                 'user' : {
                                     'id' : userid,
@@ -394,7 +459,7 @@
                                 'source_img' : source_img,
                                 'thumbnail': thumbnail,
                                 'weight' : weight
-                            })
+                            },callback)
                         }
                     }, this)
                 }
@@ -416,8 +481,9 @@
                                 if (item.views){
                                     var weight = item.stats.userCount
                                 }
-                                callback({
+                                process({
                                     'service' : 'youtube',
+                                    'type' : 'video',
                                     'query' : query,
                                     'user' : {
                                         'id' : item.uploader,
@@ -431,7 +497,7 @@
                                     'source' : 'http://youtu.be/'+ item.id,
                                     'thumbnail':'http://i.ytimg.com/vi/' + item.id + '/hqdefault.jpg',
                                     'weight' : weight,
-                                })
+                                },callback)
                             }
                         }, this)
                     }
@@ -448,8 +514,9 @@
                         data.value.items.forEach(function(item){
                             if (this.items_seen[item.guid] == null){
                                 this.items_seen[item.guid] = true
-                                callback({
+                                process({
                                     'service' : 'wordpress',
+                                    'type' : 'link',
                                     'query' : query,
                                     'user' : {
                                         'id' : item.author,
@@ -463,7 +530,7 @@
                                     'description':item.content,
                                     'source' : item.guid,
                                     'weight' : 1,
-                                })
+                                },callback)
                             }
                         }, this)
                     }
@@ -514,8 +581,9 @@
                                 if (item.views){
                                     var weight = item.stats.userCount
                                 }
-                                callback({
+                                process({
                                     'service' : 'foursquare',
+                                    'type' : 'checkin',
                                     'geo' : item.location.lat+","+item.location.lng,
                                     'query' : query,
                                     'user' : {
@@ -526,7 +594,7 @@
                                     'visits' : item.stats.checkinsCount,
                                     'subscribers' : item.stats.usersCount,
                                     'weight' : weight,
-                                })
+                                },callback)
                             }
                         }, this)
                     }
