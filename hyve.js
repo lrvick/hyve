@@ -4,7 +4,6 @@
 
     // ECMA-262 compatible Array#forEach polyfills
     Array.prototype.forEach = Array.prototype.forEach
-    || function(fn, ctx) {
            var len = this.length >>> 0
            for (var i = 0; i < len; ++i)
                if (i in this) fn.call(ctx, this[i], i, this)
@@ -81,7 +80,7 @@
 
     // Manually re-classify items as needed, check for dupes, then send to callback
     function process(item,callback){
-        if (item.links != undefined){
+        if (item.links.length > 0){
             var processed_orig
             item.links.forEach(function(link){
                 var new_item = item
@@ -113,7 +112,7 @@
                     new_item.origin_source = item.source
                     new_item.service = 'imgur'
                     new_item.type = 'image'
-                    new_item.id = item.source.replace(/.*com\/([A-Za-z0-9]+).*/ig,"$1")
+                    new_item.id = item.source.replace(/.*com(?:\/a)?\/([A-Za-z0-9]+).*/ig,"$1")
                     new_item.source = 'http://imgur.com/'+item.id
                     new_item.source_img = 'http://imgur.com/'+item.id+'.jpg'
                     new_item.thumbnail = 'http://imgur.com/'+item.id+'l.jpg'
@@ -124,7 +123,15 @@
                     new_item.thumbnail = item.source
                     callback(new_item)
                 }
-                if (processed_orig != true && new_item.type == item.type){
+                if (processed_orig != true && link.search(/bit.ly|j.mp|bitly.com|tcrn.ch|nyti.ms|pep.si/i) != -1){
+                    var options = hyve.feeds.bitly
+                    var feed_url = format( options.feed_url,
+                                 { short_url: link
+                                 , login : options.login
+                                 , api_key: options.api_key })
+                    fetch(feed_url, 'bitly', link, callback, item)
+                    var processed_orig = true
+                } else if (processed_orig != true && new_item.type == item.type){
                     callback(item)
                     var processed_orig = true
                 }
@@ -166,8 +173,8 @@
         }
 
         // Abstracts fetching URIs.
-        function fetch(url, service, query, callback) {
-            var fn = pass(service, query, callback)
+        function fetch(url, service, query, callback, item) {
+            var fn = pass(service, query, callback, item)
             var cb = !get && get_callback()
             url    = format(url, { callback: cb })
             var fetcher = get? request : jsonp
@@ -175,9 +182,9 @@
         }
 
         // Higher-order function to process the fetched data
-        function pass(service, query, callback) {
+        function pass(service, query, callback, item) {
             return function(data) {
-                hyve.feeds[service].parse(data, query, callback)
+                hyve.feeds[service].parse(data, query, callback, item)
             }
         }
 
@@ -190,44 +197,70 @@
     hyve.stream    = stream
     hyve.stop      = stop
     hyve.callbacks = []
+    hyve.links = {}
     hyve.feeds     = {
+        bitly: { // this is living here temporarily until a clean way of implementing "methods" is decided so feeds can define search,user,unshorten etc.
+            login:'',
+            api_key:'',
+            feed_url : 'http://api.bitly.com/v3/expand?shortUrl={{short_url}}{{#&login=#login}}{{#&apiKey=#api_key}}&format=json{{#&callback=#callback}}',
+            parse : function(data,url,callback,item){
+                //TODO make this actually handle multiple urls instead of cheating and assuming only one
+                var long_urls = []
+                data.data.expand.forEach(function(link){
+                    long_urls.push(link.long_url)
+                })
+                item.links = long_urls
+                process(item,callback)
+            }
+        },
             twitter: {
                 interval : 2000,
                 result_type : 'mixed', // mixed, recent, popular
-                feed_url :'http://search.twitter.com/search.json?q={{query}}&lang=en&{{#&result_type=#result_type}}{{#&callback=#callback}}',
+                feed_url :'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True&{{#&result_type=#result_type}}{{#&callback=#callback}}',
                 parse : function(data,query,callback){
                     if (data.refresh_url != null){
                         this.feed_url = 'http://search.twitter.com/search.json'
                                       + data.refresh_url
                                       + '{{#&callback=#callback}}'
                     }
+                    if (this.items_seen == null){
+                        this.items_seen = {};
+                    }
                     if (data.results != null){
                         data.results.forEach(function(item){
-                            var weight = 0
-                            if (item.metadata.result_type == 'popular'){
-                                weight = 1
+                            if (this.items_seen[item.id_str.toString()] == null){
+                                this.items_seen[item.id_str.toString()] = true
+                                var links = []
+                                if (item.entities.urls) {
+                                    item.entities.urls.forEach(function(url){
+                                        links.push(url.expanded_url)
+                                    })
+                                }
+                                var weight = 0
+                                if (item.metadata.result_type == 'popular'){
+                                    weight = 1
+                                }
+                                if (item.metadata.recent_retweets){
+                                    weight = weight + item.metadata.recent_retweets
+                                }
+                                process({
+                                    'service' : 'twitter',
+                                    'type' : 'text',
+                                    'query' : query,
+                                    'user' : {
+                                        'id' : item.from_user_id_str,
+                                        'name' : item.from_user,
+                                        'avatar' : item.profile_image_url
+                                    },
+                                    'id' : item.id_str,
+                                    'date' : epochDate(item.created_at),
+                                    'text' : item.text,
+                                    'links' : links,
+                                    'source' : 'http://twitter.com/'+item.from_user+'/status/'+item.id,
+                                    'weight' : weight
+                                },callback)
                             }
-                            if (item.metadata.recent_retweets){
-                                weight = weight + item.metadata.recent_retweets
-                            }
-                            links = item.text.match(/(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/gi)
-                            process({
-                                'service' : 'twitter',
-                                'type' : 'text',
-                                'query' : query,
-                                'user' : {
-                                    'id' : item.from_user_id_str,
-                                    'name' : item.from_user,
-                                    'avatar' : item.profile_image_url
-                                },
-                                'id' : item.id_str,
-                                'date' : epochDate(item.created_at),
-                                'text' : item.text,
-                                'links' : links,
-                                'source' : 'http://twitter.com/'+item.from_user+'/status/'+item.id,
-                                'weight' : weight
-                            },callback)
-                        })
+                        },this)
                     }
                 }
             },
