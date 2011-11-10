@@ -389,6 +389,52 @@
                     }
                 }
             },
+            digg: {
+                methods : ['search'],
+                interval : 10000,
+                feed_url : 'http://services.digg.com/2.0/search.search?query={{query}}&sort=date-desc&type=javascript{{#&callback=#callback}}',
+                parse : function(data,query,callback){
+                    if (data.stories[0]){
+                        if (this.orig_url == null){
+                            this.orig_url = this.feed_url
+                        }
+                        if (this.items_seen == null){
+                            this.items_seen = {};
+                        }
+                        var min_date = data.stories[0].submit_date
+                        if (min_date != null){
+                            this.feed_url = this.orig_url + '&min_date=' + min_date
+                        }
+                        data.stories.forEach(function(item){
+                            if (this.items_seen[item.id] == null){
+                                this.items_seen[item.id] = true
+                                var weight = 0
+                                if (item.diggs){
+                                    weight = item.diggs
+                                }
+                                if (item.comments){
+                                    weight = weight + item.comments
+                                }
+                                process({
+                                    'service' : 'digg',
+                                    'type' : 'link',
+                                    'query' : query,
+                                    'user' : {
+                                        'name' : item.user.name,
+                                        'avatar' : item.user.icon,
+                                    },
+                                    'id' : item.id,
+                                    'date' : item.submit_date,
+                                    'text' : item.title,
+                                    'links'  : [item.href],
+                                    'source' : item.shorturl.short_url,
+                                    'weight' : weight
+                                },callback)
+                            }
+                        },this)
+                    }
+                }
+            },
             picasa: {
                 methods : ['search'],
                 interval : 15000,
