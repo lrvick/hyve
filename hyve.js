@@ -4,6 +4,7 @@
 
     // ECMA-262 compatible Array#forEach polyfills
     Array.prototype.forEach = Array.prototype.forEach
+    || function(fn, ctx) {
            var len = this.length >>> 0
            for (var i = 0; i < len; ++i)
                if (i in this) fn.call(ctx, this[i], i, this)
@@ -37,6 +38,17 @@
     // callback
     function stream(query, callback, custom_services) {
         services = custom_services || Object.keys(hyve.feeds)
+        if (custom_services){
+            services = custom_services
+        } else {
+            services = []
+            all_services = Object.keys(hyve.feeds)
+            all_services.forEach(function(service){
+               if ('search' in oc(hyve.feeds[service.toLowerCase()].methods)){
+                   services.push(service.toLowerCase())
+               }
+            })
+        }
         services.forEach(function(service){
             if ( hyve.feeds[service.toLowerCase()].orig_url == undefined ){
                 hyve.feeds[service.toLowerCase()].orig_url = hyve.feeds[service.toLowerCase()].feed_url
@@ -80,10 +92,12 @@
 
     // Manually re-classify items as needed, check for dupes, then send to callback
     function process(item,callback){
+        item.links = item.links || []
         if (item.links.length > 0){
             var processed_orig
             item.links.forEach(function(link){
                 var new_item = item
+                var link = link || ''
                 if (link.search(/youtu.be|youtube.com/i) != -1){
                     new_item.origin = item.service
                     new_item.origin_id = item.id
@@ -200,20 +214,24 @@
     hyve.links = {}
     hyve.feeds     = {
         bitly: { // this is living here temporarily until a clean way of implementing "methods" is decided so feeds can define search,user,unshorten etc.
+            methods : ['unshorten'],
             login:'',
             api_key:'',
             feed_url : 'http://api.bitly.com/v3/expand?shortUrl={{short_url}}{{#&login=#login}}{{#&apiKey=#api_key}}&format=json{{#&callback=#callback}}',
             parse : function(data,url,callback,item){
                 //TODO make this actually handle multiple urls instead of cheating and assuming only one
                 var long_urls = []
-                data.data.expand.forEach(function(link){
-                    long_urls.push(link.long_url)
-                })
-                item.links = long_urls
+                if (data.data.expand){
+                    data.data.expand.forEach(function(link){
+                        long_urls.push(link.long_url)
+                    })
+                    item.links = long_urls
+                }
                 process(item,callback)
             }
         },
             twitter: {
+                methods : ['search'],
                 interval : 2000,
                 result_type : 'mixed', // mixed, recent, popular
                 feed_url :'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True&{{#&result_type=#result_type}}{{#&callback=#callback}}',
@@ -265,6 +283,7 @@
                 }
             },
             identica: {
+                methods : ['search'],
                 interval : 6000,
                 feed_url :'http://identi.ca/api/search.json?lang=en&q={{query}}{{#&callback=#callback}}',
                 parse : function(data,query,callback){
@@ -291,6 +310,7 @@
                 }
             },
             facebook: {
+                methods : ['search'],
                 interval : 3000,
                 feed_url : 'https://graph.facebook.com/search?q={{query}}&type=post{{#&callback=#callback}}',
                 parse : function(data,query,callback){
@@ -321,6 +341,7 @@
                 }
             },
             reddit: {
+                methods : ['search'],
                 interval : 5000,
                 result_type : 'relevance', // new, relevence, top
                 feed_url : 'http://www.reddit.com/search.json?q={{query}}{{#&sort=#result_type}}{{#&jsonp=#callback}}',
@@ -369,6 +390,7 @@
                 }
             },
             picasa: {
+                methods : ['search'],
                 interval : 15000,
                 feed_url : 'https://picasaweb.google.com/data/feed/api/all?q={{query}}&max-results=20&kind=photo&alt=json{{#&callback=#callback}}',
                 parse : function(data,query,callback){
@@ -429,6 +451,7 @@
                 }
             },
             flickr: {
+                methods : ['search'],
                 interval : 10000,
                 result_type : 'date-posted-desc',  // date-posted-asc, date-posted-desc, date-taken-asc, date-taken-desc, interestingness-desc, interestingness-asc, relevance
                 api_key : '',
@@ -458,8 +481,10 @@
                     items && items.forEach(function(item){
                         if (this.api_key){
                             var id = item.id
-                            var thumbnail = item.url_m
-                            var source_img = item.url_m.replace('.jpg','_b.jpg')
+                            if (item.url_m){
+                                var thumbnail = item.url_m
+                                var source_img = item.url_m.replace('.jpg','_b.jpg')
+                            }
                             var username = item.ownername
                             var userid = item.owner
                         } else {
@@ -498,6 +523,7 @@
                 }
             },
             youtube: {
+                methods : ['search'],
                 interval : 8000,
                 result_type : 'videos',  //  videos,top_rated, most_popular, standard_feeds/most_recent, most_dicsussed, most_responded, recently_featured, on_the_web
                 feed_suffix : '', // '', standardfeeds/ - if '' result_type must be 'videos'
@@ -537,6 +563,7 @@
                 }
             },
             wordpress: {
+                methods : ['search'],
                 interval : 10000,
                 feed_url : 'http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D{{query}}%26s%3Ddate%26f%3Djson{{#&_callback=#callback}}',
                 parse : function(data,query,callback){
@@ -570,6 +597,7 @@
                 }
             },
             foursquare: {
+                methods : ['search'],
                 interval : 15000,
                 client_id: '',
                 client_secret: '',
