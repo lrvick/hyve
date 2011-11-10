@@ -435,6 +435,37 @@
                     }
                 }
             },
+            delicious: {
+                methods : ['search'],
+                interval : 15000,
+                feed_url : 'http://feeds.delicious.com/v2/json/tag/{{query}}?count=20{{#&callback=#callback}}',
+                parse : function(data,query,callback){
+                    if (this.items_seen == null){
+                        this.items_seen = {};
+                    }
+                    if (data[0]){
+                        data.forEach(function(item){
+                            if (this.items_seen[item.u] == null){
+                                this.items_seen[item.u] = true
+                                process({
+                                    'service' : 'delicious',
+                                    'type' : 'link',
+                                    'query' : query,
+                                    'user' : {
+                                        'name' : item.a,
+                                    },
+                                    'id' : item.u,
+                                    'date' : epochDate(item.dt),
+                                    'text' : item.d,
+                                    'links'  : [item.u],
+                                    'source' : item.u,
+                                    'weight' : 1
+                                },callback)
+                            }
+                        },this)
+                    }
+                }
+            },
             picasa: {
                 methods : ['search'],
                 interval : 15000,
