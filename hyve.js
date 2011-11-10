@@ -391,8 +391,8 @@
             },
             digg: {
                 methods : ['search'],
-                interval : 10000,
-                feed_url : 'http://services.digg.com/2.0/search.search?query={{query}}&sort=date-desc&type=javascript{{#&callback=#callback}}',
+                interval : 15000,
+                feed_url : 'http://services.digg.com/2.0/search.search?query={{query}}&count=20&sort=date-desc&type=javascript{{#&callback=#callback}}',
                 parse : function(data,query,callback){
                     if (data.stories[0]){
                         if (this.orig_url == null){
