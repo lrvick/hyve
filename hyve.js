@@ -90,71 +90,87 @@
         })
     }
 
+    // Gives some feeds the chance to claim an item as its own, then returns
+    // list of claimed/reformatted items, or the unaltered origional
+    function claim(item,callback){
+        var new_items = []
+        var reprocessed = false
+        item.links.forEach(function(link){
+            if (hyve.links[link] == null){
+                hyve.links[link] = true
+                var link = link || ''
+                if (link.search(/bit.ly|j.mp|bitly.com|tcrn.ch|nyti.ms|pep.si/i) != -1){
+                    hyve.feeds['bitly'].fetch_url('bitly',link,callback,item)
+                    reprocessed = true
+                }
+                if (link.search(/youtu.be|youtube.com/i) != -1){
+                    var new_item = item
+                    new_item.origin = item.service
+                    new_item.origin_id = item.id
+                    new_item.origin_source = item.source
+                    new_item.service = 'youtube'
+                    new_item.type = 'video'
+                    if (item.source.search(/youtu.be/i) != -1){
+                        new_item.id = item.source.replace(/.*be\/(.*)/ig,"$1")
+                    }
+                    if (link.search(/youtube.com/i) != -1){
+                        new_item.id = item.source.replace(/.*com\/.*v=([a-zA-Z0-9_]+).*/ig,"$1")
+                    }
+                    new_item.source = 'http://youtu.be/'+item.id
+                    new_items.push(new_item)
+                }
+                if (link.search(/vimeo.com/i) != -1){
+                    var new_item = item
+                    new_item.origin = item.service
+                    new_item.origin_id = item.id
+                    new_item.origin_source = item.source
+                    new_item.service = 'vimeo'
+                    new_item.type = 'video'
+                    new_item.id = item.source.replace(/.*com\/(.*)/ig,"$1")
+                    new_items.push(new_item)
+                }
+                if (link.search(/imgur.com/i) != -1){
+                    var new_item = item
+                    new_item.origin = item.service
+                    new_item.origin_id = item.id
+                    new_item.origin_source = item.source
+                    new_item.service = 'imgur'
+                    new_item.type = 'image'
+                    new_item.id = item.source.replace(/.*com(?:\/a)?\/([A-Za-z0-9]+).*/ig,"$1")
+                    new_item.source = 'http://imgur.com/'+item.id
+                    new_item.source_img = 'http://imgur.com/'+item.id+'.jpg'
+                    new_item.thumbnail = 'http://imgur.com/'+item.id+'l.jpg'
+                    new_items.push(new_item)
+                }
+                if (link.search(/.jpg|.png|.gif/i) != -1){
+                    var new_item = item
+                    new_item.type = 'image'
+                    new_item.source_img = item.source
+                    new_item.thumbnail = item.source
+                    new_items.push(new_item)
+                }
+            }
+        })
+        if (new_items.length > 0){
+            return new_items
+        } else if (reprocessed = false){
+            return [item]
+        } else {
+            return false
+        }
+    }
+
     // Manually re-classify items as needed, check for dupes, then send to callback
     function process(item,callback){
+        items = [item]
         item.links = item.links || []
         if (item.links.length > 0){
-            var processed_orig
-            item.links.forEach(function(link){
-                if (hyve.links[link] == null){
-                    hyve.links[link] = true
-                    var new_item = item
-                    var link = link || ''
-                    if (link.search(/youtu.be|youtube.com/i) != -1){
-                        new_item.origin = item.service
-                        new_item.origin_id = item.id
-                        new_item.origin_source = item.source
-                        new_item.service = 'youtube'
-                        new_item.type = 'video'
-                        if (item.source.search(/youtu.be/i) != -1){
-                            new_item.id = item.source.replace(/.*be\/(.*)/ig,"$1")
-                        }
-                        if (link.search(/youtube.com/i) != -1){
-                            new_item.id = item.source.replace(/.*com\/.*v=([a-zA-Z0-9_]+).*/ig,"$1")
-                        }
-                        new_item.source = 'http://youtu.be/'+item.id
-                        callback(new_item)
-                    } else if (link.search(/vimeo.com/i) != -1){
-                        new_item.origin = item.service
-                        new_item.origin_id = item.id
-                        new_item.origin_source = item.source
-                        new_item.service = 'vimeo'
-                        new_item.type = 'video'
-                        new_item.id = item.source.replace(/.*com\/(.*)/ig,"$1")
-                        callback(new_item)
-                    } else if (link.search(/imgur.com/i) != -1){
-                        new_item.origin = item.service
-                        new_item.origin_id = item.id
-                        new_item.origin_source = item.source
-                        new_item.service = 'imgur'
-                        new_item.type = 'image'
-                        new_item.id = item.source.replace(/.*com(?:\/a)?\/([A-Za-z0-9]+).*/ig,"$1")
-                        new_item.source = 'http://imgur.com/'+item.id
-                        new_item.source_img = 'http://imgur.com/'+item.id+'.jpg'
-                        new_item.thumbnail = 'http://imgur.com/'+item.id+'l.jpg'
-                        callback(new_item)
-                    } else if (link.search(/.jpg|.png|.gif/i) != -1){
-                        new_item.type = 'image'
-                        new_item.source_img = item.source
-                        new_item.thumbnail = item.source
-                        callback(new_item)
-                    }
-                    if (processed_orig != true && link.search(/bit.ly|j.mp|bitly.com|tcrn.ch|nyti.ms|pep.si/i) != -1){
-                        var options = hyve.feeds.bitly
-                        var feed_url = format( options.feed_url,
-                                     { short_url: link
-                                     , login : options.login
-                                     , api_key: options.api_key })
-                        fetch(feed_url, 'bitly', link, callback, item)
-                        var processed_orig = true
-                    } else if (processed_orig != true && new_item.type == item.type){
-                        callback(item)
-                        var processed_orig = true
-                    }
-                }
+            items = claim(item,callback)
+        }
+        if (items){
+            items.forEach(function(item){
+                callback(item)
             })
-        } else {
-            callback(item)
         }
     }
 
@@ -221,6 +237,14 @@
             login:'',
             api_key:'',
             feed_url : 'http://api.bitly.com/v3/expand?shortUrl={{short_url}}{{#&login=#login}}{{#&apiKey=#api_key}}&format=json{{#&callback=#callback}}',
+            fetch_url : function(service,link,callback,item){
+                var options = hyve.feeds.bitly
+                var feed_url = format( options.feed_url,
+                             { short_url: link
+                             , login : options.login
+                             , api_key: options.api_key })
+                fetch(feed_url, 'bitly', link, callback, item)
+            },
             parse : function(data,url,callback,item){
                 //TODO make this actually handle multiple urls instead of cheating and assuming only one
                 var long_urls = []
@@ -559,7 +583,7 @@
                 api_key : '',
                 url_suffix_auth : 'rest/?method=flickr.photos.search&',
                 url_suffix_anon : 'feeds/photos_public.gne?',
-                feed_url : 'http://api.flickr.com/services/{{url_suffix}}format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}',
+                feed_url : 'http://api.flickr.com/services/{{url_suffix}}&per_page=20&format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}',
                 format_url : function(query){
                     if (this.api_key){
                         var url_suffix = this.url_suffix_auth
