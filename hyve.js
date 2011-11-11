@@ -329,6 +329,10 @@
                         this.since = epochDate(data.data[0].created_time)
                         data.data.forEach(function(item){
                             if (item.message != null){
+                                var links = []
+                                if (item.link){
+                                    var links = [item.link]
+                                }
                                 process({
                                     'service' : 'facebook',
                                     'type' : 'text',
@@ -339,6 +343,7 @@
                                         'avatar' : 'http://graph.facebook.com/'+item.from.id+'/picture'
                                     },
                                     'id' : item.id,
+                                    'links': links,
                                     'date' : epochDate(item.created_time),
                                     'text' : item.message,
                                     'source' : 'http://facebook.com/'+item.from.id,
