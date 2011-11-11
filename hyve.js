@@ -54,16 +54,16 @@
                 hyve.feeds[service.toLowerCase()].orig_url = hyve.feeds[service.toLowerCase()].feed_url
             }
             var options = hyve.feeds[service.toLowerCase()]
-            if (hyve.feeds[service.toLowerCase()].format_url){
-                var feed_url = format(options.feed_url,hyve.feeds[service.toLowerCase()].format_url(query))
-            } else {
-                var feed_url = format( options.feed_url,
-                                 { query:  query
-                                 , url_suffix: options.url_suffix
-                                 , result_type: options.result_type
-                                 , api_key: options.api_key })
-            }
             var runFetch = function(){
+                if (hyve.feeds[service.toLowerCase()].format_url){
+                    var feed_url = format(options.feed_url,hyve.feeds[service.toLowerCase()].format_url(query))
+                } else {
+                    var feed_url = format( options.feed_url,
+                                     { query:  query
+                                     , url_suffix: options.url_suffix
+                                     , result_type: options.result_type
+                                     , api_key: options.api_key })
+                }
                 if (hyve.feeds[service.toLowerCase()].fetch_url){
                     hyve.feeds[service.toLowerCase()].fetch_url(service,query,callback)
                 } else {
@@ -96,58 +96,61 @@
         if (item.links.length > 0){
             var processed_orig
             item.links.forEach(function(link){
-                var new_item = item
-                var link = link || ''
-                if (link.search(/youtu.be|youtube.com/i) != -1){
-                    new_item.origin = item.service
-                    new_item.origin_id = item.id
-                    new_item.origin_source = item.source
-                    new_item.service = 'youtube'
-                    new_item.type = 'video'
-                    if (item.source.search(/youtu.be/i) != -1){
-                        new_item.id = item.source.replace(/.*be\/(.*)/ig,"$1")
+                if (hyve.links[link] == null){
+                    hyve.links[link] = true
+                    var new_item = item
+                    var link = link || ''
+                    if (link.search(/youtu.be|youtube.com/i) != -1){
+                        new_item.origin = item.service
+                        new_item.origin_id = item.id
+                        new_item.origin_source = item.source
+                        new_item.service = 'youtube'
+                        new_item.type = 'video'
+                        if (item.source.search(/youtu.be/i) != -1){
+                            new_item.id = item.source.replace(/.*be\/(.*)/ig,"$1")
+                        }
+                        if (link.search(/youtube.com/i) != -1){
+                            new_item.id = item.source.replace(/.*com\/.*v=([a-zA-Z0-9_]+).*/ig,"$1")
+                        }
+                        new_item.source = 'http://youtu.be/'+item.id
+                        callback(new_item)
+                    } else if (link.search(/vimeo.com/i) != -1){
+                        new_item.origin = item.service
+                        new_item.origin_id = item.id
+                        new_item.origin_source = item.source
+                        new_item.service = 'vimeo'
+                        new_item.type = 'video'
+                        new_item.id = item.source.replace(/.*com\/(.*)/ig,"$1")
+                        callback(new_item)
+                    } else if (link.search(/imgur.com/i) != -1){
+                        new_item.origin = item.service
+                        new_item.origin_id = item.id
+                        new_item.origin_source = item.source
+                        new_item.service = 'imgur'
+                        new_item.type = 'image'
+                        new_item.id = item.source.replace(/.*com(?:\/a)?\/([A-Za-z0-9]+).*/ig,"$1")
+                        new_item.source = 'http://imgur.com/'+item.id
+                        new_item.source_img = 'http://imgur.com/'+item.id+'.jpg'
+                        new_item.thumbnail = 'http://imgur.com/'+item.id+'l.jpg'
+                        callback(new_item)
+                    } else if (link.search(/.jpg|.png|.gif/i) != -1){
+                        new_item.type = 'image'
+                        new_item.source_img = item.source
+                        new_item.thumbnail = item.source
+                        callback(new_item)
                     }
-                    if (link.search(/youtube.com/i) != -1){
-                        new_item.id = item.source.replace(/.*com\/.*v=([a-zA-Z0-9_]+).*/ig,"$1")
+                    if (processed_orig != true && link.search(/bit.ly|j.mp|bitly.com|tcrn.ch|nyti.ms|pep.si/i) != -1){
+                        var options = hyve.feeds.bitly
+                        var feed_url = format( options.feed_url,
+                                     { short_url: link
+                                     , login : options.login
+                                     , api_key: options.api_key })
+                        fetch(feed_url, 'bitly', link, callback, item)
+                        var processed_orig = true
+                    } else if (processed_orig != true && new_item.type == item.type){
+                        callback(item)
+                        var processed_orig = true
                     }
-                    new_item.source = 'http://youtu.be/'+item.id
-                    callback(new_item)
-                } else if (link.search(/vimeo.com/i) != -1){
-                    new_item.origin = item.service
-                    new_item.origin_id = item.id
-                    new_item.origin_source = item.source
-                    new_item.service = 'vimeo'
-                    new_item.type = 'video'
-                    new_item.id = item.source.replace(/.*com\/(.*)/ig,"$1")
-                    callback(new_item)
-                } else if (link.search(/imgur.com/i) != -1){
-                    new_item.origin = item.service
-                    new_item.origin_id = item.id
-                    new_item.origin_source = item.source
-                    new_item.service = 'imgur'
-                    new_item.type = 'image'
-                    new_item.id = item.source.replace(/.*com(?:\/a)?\/([A-Za-z0-9]+).*/ig,"$1")
-                    new_item.source = 'http://imgur.com/'+item.id
-                    new_item.source_img = 'http://imgur.com/'+item.id+'.jpg'
-                    new_item.thumbnail = 'http://imgur.com/'+item.id+'l.jpg'
-                    callback(new_item)
-                } else if (link.search(/.jpg|.png|.gif/i) != -1){
-                    new_item.type = 'image'
-                    new_item.source_img = item.source
-                    new_item.thumbnail = item.source
-                    callback(new_item)
-                }
-                if (processed_orig != true && link.search(/bit.ly|j.mp|bitly.com|tcrn.ch|nyti.ms|pep.si/i) != -1){
-                    var options = hyve.feeds.bitly
-                    var feed_url = format( options.feed_url,
-                                 { short_url: link
-                                 , login : options.login
-                                 , api_key: options.api_key })
-                    fetch(feed_url, 'bitly', link, callback, item)
-                    var processed_orig = true
-                } else if (processed_orig != true && new_item.type == item.type){
-                    callback(item)
-                    var processed_orig = true
                 }
             })
         } else {
@@ -312,12 +315,18 @@
             facebook: {
                 methods : ['search'],
                 interval : 3000,
-                feed_url : 'https://graph.facebook.com/search?q={{query}}&type=post{{#&callback=#callback}}',
+                feed_url : 'https://graph.facebook.com/search?q={{query}}&limit=25&type=post{{since}}{{#&callback=#callback}}',
+                format_url : function(query){
+                    var since_arg = ''
+                    if (this.since){
+                        since_arg = '&since='+this.since
+                    }
+                    return { query: query
+                           , since: since_arg}
+                },
                 parse : function(data,query,callback){
-                    if (data.data != null){
-                        if (data.paging != null) {
-                            this.feed_url = data.paging.previous + '{{#&callback=#callback}}'
-                        }
+                    if (data.data.length > 0){
+                        this.since = epochDate(data.data[0].created_time)
                         data.data.forEach(function(item){
                             if (item.message != null){
                                 process({
@@ -336,7 +345,7 @@
                                     'weight' : 1
                                 },callback)
                             }
-                        })
+                        },this)
                     }
                 }
             },
@@ -344,16 +353,19 @@
                 methods : ['search'],
                 interval : 5000,
                 result_type : 'relevance', // new, relevence, top
-                feed_url : 'http://www.reddit.com/search.json?q={{query}}{{#&sort=#result_type}}{{#&jsonp=#callback}}',
+                feed_url : 'http://www.reddit.com/search.json?q={{query}}{{#&sort=#result_type}}{{#&jsonp=#callback}}{{before}}',
+                format_url : function(query){
+                    var before_arg = ''
+                    if (this.before){
+                        before_arg = '&before='+this.before
+                    }
+                    return { query: query
+                           , before: before_arg
+                           , result_type: this.result_type}
+                },
                 parse : function(data,query,callback){
                     if (data.data.children[0]){
-                        if (this.orig_url == null){
-                            this.orig_url = this.feed_url
-                        }
-                        var before = data.data.children[0].data.name
-                        if (before != null){
-                            this.feed_url = this.orig_url + '&before=' + before
-                        }
+                        this.before = data.data.children[0].data.name
                         data.data.children.forEach(function(item){
                             var item = item.data
                             var weight = 0
@@ -369,6 +381,10 @@
                             if (item.likes){
                                 weight = weight + item.likes
                             }
+                            links = []
+                            if (item.url.search(/reddit.com/i) == -1){
+                                links = [item.url]
+                            }
                             process({
                                 'service' : 'reddit',
                                 'type' : 'link',
@@ -380,7 +396,7 @@
                                 'id' : item.id,
                                 'date' : item.created_utc,
                                 'text' : item.title,
-                                'links'  : [item.url],
+                                'links'  : links,
                                 'source' : item.url,
                                 'thumbnail':'http://reddit.com' + item.thumbnail,
                                 'weight' : weight
@@ -415,6 +431,10 @@
                                 if (item.comments){
                                     weight = weight + item.comments
                                 }
+                                links = []
+                                if (item.href.search(/digg.com/i) == -1){
+                                    links = [item.href]
+                                }
                                 process({
                                     'service' : 'digg',
                                     'type' : 'link',
@@ -426,7 +446,7 @@
                                     'id' : item.id,
                                     'date' : item.submit_date,
                                     'text' : item.title,
-                                    'links'  : [item.href],
+                                    'links'  : links,
                                     'source' : item.shorturl.short_url,
                                     'weight' : weight
                                 },callback)
