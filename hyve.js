@@ -94,17 +94,18 @@
     // list of claimed/reformatted items, or the unaltered origional
     function claim(item,callback){
         var new_items = []
-        var reprocessed = false
+        var noprocess = false
         item.links.forEach(function(link){
             if (hyve.links[link] == null){
                 hyve.links[link] = true
                 var link = link || ''
                 if (link.search(/bit.ly|j.mp|bitly.com|tcrn.ch|nyti.ms|pep.si/i) != -1){
                     hyve.feeds['bitly'].fetch_url('bitly',link,callback,item)
-                    reprocessed = true
+                    noprocess = true
                 }
                 if (link.search(/youtu.be|youtube.com/i) != -1){
                     var new_item = item
+                    new_item.links = []
                     new_item.origin = item.service
                     new_item.origin_id = item.id
                     new_item.origin_source = item.source
@@ -121,6 +122,7 @@
                 }
                 if (link.search(/vimeo.com/i) != -1){
                     var new_item = item
+                    new_item.links = []
                     new_item.origin = item.service
                     new_item.origin_id = item.id
                     new_item.origin_source = item.source
@@ -131,6 +133,7 @@
                 }
                 if (link.search(/imgur.com/i) != -1){
                     var new_item = item
+                    new_item.links = []
                     new_item.origin = item.service
                     new_item.origin_id = item.id
                     new_item.origin_source = item.source
@@ -144,16 +147,19 @@
                 }
                 if (link.search(/.jpg|.png|.gif/i) != -1){
                     var new_item = item
+                    new_item.links = []
                     new_item.type = 'image'
                     new_item.source_img = item.source
                     new_item.thumbnail = item.source
                     new_items.push(new_item)
                 }
+            } else {
+                noprocess = true
             }
         })
         if (new_items.length > 0){
             return new_items
-        } else if (reprocessed = false){
+        } else if (noprocess == false){
             return [item]
         } else {
             return false
