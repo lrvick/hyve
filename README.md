@@ -18,7 +18,7 @@
   * Supports searching Facebook, Twitter, Identica, Foursquare, Flickr, Picasa, Wordpress, Youtube, Reddit, Digg, and Delicious
   * Indirectly supports Imgur and Vimeo by catching links shared via other services.
   * Expands urls from t.co and bitly
-  * Streams from all services (default), or optinoally only selected services
+  * Streams from all services (default), or optionally only selected services
   * Runs in the browser or on the server (Node.js)
 
 [USMF]: https://github.com/Tawlk/hyve/wiki/Unified-Social-Media-Format-(USMF)
