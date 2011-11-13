@@ -15,7 +15,9 @@
   * Plays nice with all major JS frameworks (jQuery, Mootools etc.)
   * Can run any javascript function of your choice against each posting retrieved.
   * Outputs all data in a normalized format - [USMF][]
-  * Supports Facebook, Twitter, Identica, Foursquare, Flickr, Picasa, Wordpress, Youtube and Reddit
+  * Supports searching Facebook, Twitter, Identica, Foursquare, Flickr, Picasa, Wordpress, Youtube, and Reddit
+  * Indirectly supports Imgur and Vimeo by catching links shared via other services.
+  * Expands urls from t.co and bitly
   * Streams from all services (default), or optinoally only selected services
   * Runs in the browser or on the server (Node.js)
 
