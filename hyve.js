@@ -94,57 +94,19 @@
     // list of claimed/reformatted items, or the unaltered origional
     function claim(item,callback){
         var new_items = []
-        var noprocess = false
+        var services = Object.keys(hyve.feeds)
         item.links.forEach(function(link){
             if (hyve.links[link] == null){
                 hyve.links[link] = true
                 var link = link || ''
-                if (link.search(/bit.ly|j.mp|bitly.com|tcrn.ch|nyti.ms|pep.si/i) != -1){
-                    hyve.feeds['bitly'].fetch_url('bitly',link,callback,item)
-                    noprocess = true
-                }
-                if (link.search(/youtu.be|youtube.com/i) != -1){
-                    var new_item = item
-                    new_item.links = []
-                    new_item.origin = item.service
-                    new_item.origin_id = item.id
-                    new_item.origin_source = item.source
-                    new_item.service = 'youtube'
-                    new_item.type = 'video'
-                    if (item.source.search(/youtu.be/i) != -1){
-                        new_item.id = item.source.replace(/.*be\/(.*)/ig,"$1")
-                    }
-                    if (link.search(/youtube.com/i) != -1){
-                        new_item.id = item.source.replace(/.*com\/.*v=([a-zA-Z0-9_]+).*/ig,"$1")
-                    }
-                    new_item.source = 'http://youtu.be/'+item.id
-                    new_items.push(new_item)
-                }
-                if (link.search(/vimeo.com/i) != -1){
-                    var new_item = item
-                    new_item.links = []
-                    new_item.origin = item.service
-                    new_item.origin_id = item.id
-                    new_item.origin_source = item.source
-                    new_item.service = 'vimeo'
-                    new_item.type = 'video'
-                    new_item.id = item.source.replace(/.*com\/(.*)/ig,"$1")
-                    new_items.push(new_item)
-                }
-                if (link.search(/imgur.com/i) != -1){
-                    var new_item = item
-                    new_item.links = []
-                    new_item.origin = item.service
-                    new_item.origin_id = item.id
-                    new_item.origin_source = item.source
-                    new_item.service = 'imgur'
-                    new_item.type = 'image'
-                    new_item.id = item.source.replace(/.*com(?:\/a)?\/([A-Za-z0-9]+).*/ig,"$1")
-                    new_item.source = 'http://imgur.com/'+item.id
-                    new_item.source_img = 'http://imgur.com/'+item.id+'.jpg'
-                    new_item.thumbnail = 'http://imgur.com/'+item.id+'l.jpg'
-                    new_items.push(new_item)
-                }
+                services.forEach(function(service){
+                   if (hyve.feeds[service.toLowerCase()].claim){
+                       var new_item = hyve.feeds[service.toLowerCase()].claim(link,item)
+                        if (new_item){
+                            new_items.push(new_item)
+                        }
+                   }
+                })
                 if (link.search(/.jpg|.png|.gif/i) != -1){
                     var new_item = item
                     new_item.links = []
@@ -154,13 +116,11 @@
                     new_items.push(new_item)
                 }
             } else {
-                noprocess = true
+                new_items.push(item)
             }
         })
         if (new_items.length > 0){
             return new_items
-        } else if (noprocess == false){
-            return [item]
         } else {
             return false
         }
@@ -238,31 +198,69 @@
     hyve.callbacks = []
     hyve.links = {}
     hyve.feeds     = {
-        bitly: { // this is living here temporarily until a clean way of implementing "methods" is decided so feeds can define search,user,unshorten etc.
-            methods : ['unshorten'],
-            login:'',
-            api_key:'',
-            feed_url : 'http://api.bitly.com/v3/expand?shortUrl={{short_url}}{{#&login=#login}}{{#&apiKey=#api_key}}&format=json{{#&callback=#callback}}',
-            fetch_url : function(service,link,callback,item){
-                var options = hyve.feeds.bitly
-                var feed_url = format( options.feed_url,
-                             { short_url: link
-                             , login : options.login
-                             , api_key: options.api_key })
-                fetch(feed_url, 'bitly', link, callback, item)
-            },
-            parse : function(data,url,callback,item){
-                //TODO make this actually handle multiple urls instead of cheating and assuming only one
-                var long_urls = []
-                if (data.data.expand){
-                    data.data.expand.forEach(function(link){
-                        long_urls.push(link.long_url)
-                    })
-                    item.links = long_urls
+            imgur: {
+                methods : [],
+                claim : function(link,item){
+                    if (link.search(/imgur.com/i) != -1){
+                        item.links = []
+                        item.origin = item.service
+                        item.origin_id = item.id
+                        item.origin_source = item.source
+                        item.service = 'imgur'
+                        item.type = 'image'
+                        item.id = item.source.replace(/.*com(?:\/a)?\/([A-Za-z0-9]+).*/ig,"$1")
+                        item.source = 'http://imgur.com/'+item.id
+                        item.source_img = 'http://imgur.com/'+item.id+'.jpg'
+                        item.thumbnail = 'http://imgur.com/'+item.id+'l.jpg'
+                        return item
+                    }
                 }
-                process(item,callback)
-            }
-        },
+            },
+            vimeo: {
+                methods : [],
+                claim : function(link,item,callback){
+                    if (link.search(/vimeo.com/i) != -1){
+                        item.links = []
+                        item.origin = item.service
+                        item.origin_id = item.id
+                        item.origin_source = item.source
+                        item.service = 'vimeo'
+                        item.type = 'video'
+                        item.id = item.source.replace(/.*com\/(.*)/ig,"$1")
+                        return item
+                    }
+                }
+            },
+            bitly: { // this is living here temporarily until a clean way of implementing "methods" is decided so feeds can define search,user,unshorten etc.
+                methods : ['unshorten'],
+                login:'',
+                api_key:'',
+                feed_url : 'http://api.bitly.com/v3/expand?shortUrl={{short_url}}{{#&login=#login}}{{#&apiKey=#api_key}}&format=json{{#&callback=#callback}}',
+                fetch_url : function(service,link,callback,item){
+                    var options = hyve.feeds.bitly
+                    var feed_url = format( options.feed_url,
+                                 { short_url: link
+                                 , login : options.login
+                                 , api_key: options.api_key })
+                    fetch(feed_url, 'bitly', link, callback, item)
+                },
+                claim : function(link,item,callback){
+                    if (link.search(/bit.ly|j.mp|bitly.com|tcrn.ch|nyti.ms|pep.si/i) != -1){
+                        hyve.feeds['bitly'].fetch_url('bitly',link,callback,item)
+                    }
+                },
+                parse : function(data,url,callback,item){
+                    //TODO make this actually handle multiple urls instead of cheating and assuming only one
+                    var long_urls = []
+                    if (data.data.expand){
+                        data.data.expand.forEach(function(link){
+                            long_urls.push(link.long_url)
+                        })
+                        item.links = long_urls
+                    }
+                    process(item,callback)
+                }
+            },
             twitter: {
                 methods : ['search'],
                 interval : 2000,
@@ -660,6 +658,24 @@
                 result_type : 'videos',  //  videos,top_rated, most_popular, standard_feeds/most_recent, most_dicsussed, most_responded, recently_featured, on_the_web
                 feed_suffix : '', // '', standardfeeds/ - if '' result_type must be 'videos'
                 feed_url : 'http://gdata.youtube.com/feeds/api/{{feed_suffix}}{{result_type}}?q={{query}}&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
+                claim : function(link,item){
+                    if (link.search(/youtu.be|youtube.com/i) != -1){
+                        item.links = []
+                        item.origin = item.service
+                        item.origin_id = item.id
+                        item.origin_source = item.source
+                        item.service = 'youtube'
+                        item.type = 'video'
+                        if (item.source.search(/youtu.be/i) != -1){
+                            item.id = item.source.replace(/.*be\/(.*)/ig,"$1")
+                        }
+                        if (link.search(/youtube.com/i) != -1){
+                            item.id = item.source.replace(/.*com\/.*v=([a-zA-Z0-9_]+).*/ig,"$1")
+                        }
+                        item.source = 'http://youtu.be/'+item.id
+                        return item
+                    }
+                },
                 parse : function(data,query,callback){
                     if (this.items_seen == null){
                         this.items_seen = {};
