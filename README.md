@@ -108,9 +108,10 @@ Basic live search engine with jQuery:
         hyve.feeds.foursquare.client_id = 'your_application_client_id'
         hyve.feeds.foursquare.client_secret = 'your_application_client_secret'
 
-  Flickr will work without authentication, however 'views' is not returned without auth
+  Flickr will work without authentication, however 'views' is not returned without auth.
   Without 'views' the 'weight' metric will be set to 0.
-  To get 'views' you must specify an API key like so:
+
+  To get 'views' in Flickr you must specify an API key like so:
 
         hyve.feeds.flickr.api_key = 'your_api_key',
 
