@@ -114,4 +114,9 @@ Basic live search engine with jQuery:
 
         hyve.feeds.flickr.api_key = 'your_api_key',
 
+  To utilize bitly url un-shortening you must supply a login and api_key:
+
+        hyve.feeds.bitly.login = 'your_username'
+        hyve.feeds.bitly.api_key = 'your_api_key'
+
   Questions/Comments? Please check us out on IRC via irc://freenode.net/#tawlk
