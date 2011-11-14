@@ -135,6 +135,9 @@
         }
         if (items){
             items.forEach(function(item){
+	        if (hyve.cache_enable == true){
+		   hyve.cache[item.type].push(item)
+		}
                 callback(item)
             })
         }
@@ -193,11 +196,13 @@
 
 
     // Exports data to the outside world
-    hyve.stream    = stream
-    hyve.stop      = stop
+    hyve.stream = stream
+    hyve.stop = stop
     hyve.callbacks = []
     hyve.links = {}
-    hyve.feeds     = {
+    hyve.cache_enable = false
+    hyve.cache = {'text':[],'link':[],'video':[],'image':[],'checkin':[]}
+    hyve.feeds = {
             imgur: {
                 methods : [],
                 claim : function(link,item){
