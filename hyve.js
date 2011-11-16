@@ -111,8 +111,12 @@
                     var new_item = item
                     new_item.links = []
                     new_item.type = 'image'
-                    new_item.source_img = item.source
-                    new_item.thumbnail = item.source
+			        if (!new_item.source_img){
+                        new_item.source_img = item.link
+			        }
+			        if (!new_item.thumbnail){
+                    new_item.thumbnail = item.link
+			        }
                     new_items.push(new_item)
                 }
             } else {
@@ -217,6 +221,7 @@
                         item.source = 'http://imgur.com/'+item.id
                         item.source_img = 'http://imgur.com/'+item.id+'.jpg'
                         item.thumbnail = 'http://imgur.com/'+item.id+'l.jpg'
+						console.log(item.thumbnail,item)
                         return item
                     }
                 }
