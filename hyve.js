@@ -217,17 +217,17 @@
             imgur: {
                 methods : [],
                 claim : function(link,item){
-                    if (link.search(/imgur.com/i) != -1){
+                    if (link.search(/http:\/\/(www|i)?\.?imgur.com\/(?!a)(?!gallery\/)([-|~_0-9A-Za-z]+)\.?&?.*?/ig) != -1){
                         item.links = []
                         item.origin = item.service
                         item.origin_id = item.id
                         item.origin_source = item.source
                         item.service = 'imgur'
                         item.type = 'image'
-                        item.id = item.source.replace(/.*com(?:\/a)?\/([A-Za-z0-9]+).*/ig,"$1")
+                        item.id = link.replace(/.*imgur.com\/(r\/[A-Za-z]+\/)?([-|~_0-9A-Za-z]+).*/ig, "$2")
                         item.source = 'http://imgur.com/'+item.id
-                        item.source_img = 'http://imgur.com/'+item.id+'.jpg'
-                        item.thumbnail = 'http://imgur.com/'+item.id+'l.jpg'
+                        item.source_img = 'http://i.imgur.com/'+item.id+'.jpg'
+                        item.thumbnail = 'http://i.imgur.com/'+item.id+'l.jpg'
                         return item
                     }
                 }
@@ -447,7 +447,7 @@
                                 'text' : item.title,
                                 'links'  : links,
                                 'source' : item.url,
-                                'thumbnail':'http://reddit.com' + item.thumbnail,
+                                'thumbnail': item.thumbnail,
                                 'weight' : weight
                             },callback)
                         })
@@ -675,20 +675,21 @@
                 feed_suffix : '', // '', standardfeeds/ - if '' result_type must be 'videos'
                 feed_url : 'http://gdata.youtube.com/feeds/api/{{feed_suffix}}{{result_type}}?q={{query}}&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
                 claim : function(link,item){
-                    if (link.search(/youtu.be|youtube.com/i) != -1){
+                    if (link.search(/youtu.be|youtube.com.*v=/i) != -1){
                         item.links = []
                         item.origin = item.service
                         item.origin_id = item.id
                         item.origin_source = item.source
                         item.service = 'youtube'
                         item.type = 'video'
-                        if (item.source.search(/youtu.be/i) != -1){
-                            item.id = item.source.replace(/.*be\/(.*)/ig,"$1")
+                        if (link.search(/youtu.be/i) != -1){
+                            item.id = link.replace(/.*be\/([a-zA-Z0-9_-]+).*/ig,"$1")
                         }
                         if (link.search(/youtube.com/i) != -1){
-                            item.id = item.source.replace(/.*com\/.*v=([a-zA-Z0-9_]+).*/ig,"$1")
+                            item.id = link.split("v=")[1].substring(0,11)
                         }
                         item.source = 'http://youtu.be/'+item.id
+                        item.thumbnail = 'http://i.ytimg.com/vi/' + item.id + '/hqdefault.jpg'
                         return item
                     }
                 },
