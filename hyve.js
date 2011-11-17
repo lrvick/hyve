@@ -130,6 +130,13 @@
         }
     }
 
+	function cache(item,sortkey){
+	    hyve.cache[item.type].push(item)
+	    hyve.cache[item.type].sort(function(a,b){
+		    return a[sortkey]-b[sortkey]
+		})
+	}
+
     // Manually re-classify items as needed, check for dupes, then send to callback
     function process(item,callback){
         items = [item]
@@ -139,9 +146,9 @@
         }
         if (items){
             items.forEach(function(item){
-	        if (hyve.cache_enable == true){
-		   hyve.cache[item.type].push(item)
-		}
+	            if (hyve.cache_enable == true){
+					cache(item,'date')
+		        }
                 callback(item)
             })
         }
@@ -221,7 +228,6 @@
                         item.source = 'http://imgur.com/'+item.id
                         item.source_img = 'http://imgur.com/'+item.id+'.jpg'
                         item.thumbnail = 'http://imgur.com/'+item.id+'l.jpg'
-						console.log(item.thumbnail,item)
                         return item
                     }
                 }
