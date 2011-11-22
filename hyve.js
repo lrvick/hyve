@@ -185,11 +185,23 @@
             return format('hyve.callbacks.f{{id}}', { id: ++counter });
         }
 
+        // Cleanup script leftovers from DOM
+        function cleanup(script){
+            head.removeChild(script);
+            for (var property in script){
+                delete script[property];
+            }
+        }
+
         // Requires an URI using JSONP
         function jsonp(url, callback) {
-            hyve.callbacks['f' + counter] = callback;
             var s = document.createElement('script');
             s.setAttribute('src', url);
+            var callback_wrap = function(){
+                cleanup(s);
+                return callback.apply(this,arguments);
+            };
+            hyve.callbacks['f' + counter] = callback_wrap;
             head.appendChild(s);
         }
 
@@ -211,7 +223,7 @@
             var cb = !get && get_callback();
             url    = format(url, { callback: cb });
             var fetcher = get? request : jsonp;
-            fetcher(url, fn);
+            script = fetcher(url, fn);
         }
 
         // Higher-order function to process the fetched data
