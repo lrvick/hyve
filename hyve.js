@@ -134,10 +134,14 @@
 
     // Place an item in an appropriate queue depending on its defined 'type'
     function enqueue(item){
-        hyve.queue[item.type].push(item);
-        hyve.queue[item.type].sort(function(a,b){
-            return b['date'] - a['date'];
-        });
+        if(item){
+            hyve.queue[item.type].push(item);
+            hyve.queue[item.type].sort(function(a,b){
+                return b['date'] - a['date'];
+            });
+        } else {
+            throw('enqueue: an undefined item was inputted');
+        }
     }
 
     // Persistantly stores an item in the browser via localStorage
