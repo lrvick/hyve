@@ -37,6 +37,7 @@
     // Pulls data from several streams and handle all them with the given
     // callback
     function stream(query, callback, custom_services) {
+        callback = callback || function(){};
         services = custom_services || Object.keys(hyve.feeds);
         if (custom_services){
             services = custom_services;
@@ -57,7 +58,8 @@
             var runFetch = function(){
                 var feed_url;
                 if (hyve.feeds[service].format_url){
-                    feed_url = format(options.feed_url,hyve.feeds[service].format_url(query));
+                    feed_url = format( options.feed_url,
+                                       hyve.feeds[service].format_url(query));
                 } else {
                     feed_url = format( options.feed_url,
                                     {  query:  query,
@@ -83,9 +85,9 @@
         var services;
         services = custom_services || Object.keys(hyve.feeds);
         services.forEach(function(service){
-            if (hyve.feeds[service.toLowerCase()].lock) {
-                hyve.feeds[service.toLowerCase()].feed_url = hyve.feeds[service.toLowerCase()].orig_url;
-                interval_id =  hyve.feeds[service.toLowerCase()].lock;
+            if (hyve.feeds[service].lock) {
+                hyve.feeds[service].feed_url = hyve.feeds[service].orig_url;
+                interval_id =  hyve.feeds[service].lock;
                 clearInterval(interval_id);
             }
         });
@@ -100,8 +102,8 @@
             if (!hyve.links[link]){
                 hyve.links[link] = true;
                 services.forEach(function(service){
-                    if (hyve.feeds[service.toLowerCase()].claim){
-                        var new_item = hyve.feeds[service.toLowerCase()].claim(link,item);
+                    if (hyve.feeds[service].claim){
+                        var new_item = hyve.feeds[service].claim(link,item);
                         if (new_item){
                             new_items.push(new_item);
                         }
@@ -130,32 +132,43 @@
         }
     }
 
-    // Persistantly stores an item in the browser via localStorage
-    function store(item){
-        var itemskey = item.type+':'+item.query;
-        var items = JSON.parse(localStorage.getItem(itemskey)) || [];
-        var items_keys = {};
-        items.forEach(function(item){
-           items_keys[item.id] = true;
-        });
-        if (!items_keys[item.id]){
-            items.push(item);
-        }
-        items.sort(function(a,b){
+    // Place an item in an appropriate queue depending on its defined 'type'
+    function enqueue(item){
+        hyve.queue[item.type].push(item);
+        hyve.queue[item.type].sort(function(a,b){
             return b['date'] - a['date'];
         });
-        items = items.splice(0,1000);
-        localStorage.setItem(itemskey,JSON.stringify(items));
+    }
+
+    // Persistantly stores an item in the browser via localStorage
+    function store(item){
+        var items_key = item.type+':'+item.query;
+        var items = JSON.parse(localStorage[items_key]) || [];
+        items.push(item);
+        trunc_items = items.splice(0,1000);
+        localStorage[items_key] = JSON.stringify(trunc_items);
     }
 
     // Recall previously saved items from localStorage
     function recall(type,query){
         var itemskey = type+':'+query;
         var items = JSON.parse(localStorage.getItem(itemskey)) || [];
+        items.sort(function(a,b){
+            return b['date'] - a['date'];
+        });
         return items;
     }
 
-    // Manually re-classify items as needed, check for dupes, then send to callback
+    // Reset queue and refill it with any previously stored data if any exists
+    function replenish(query,types){
+        hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]};
+        types = types || Object.keys(hyve.queue);
+        types.forEach(function(type){
+            hyve.queue[type] = recall(type,query);
+        });
+    }
+
+    // Manually re-classify items as needed, check for dupes, send to callback
     function process(item,callback){
         var date_obj = new Date(item.date);
         item.date = date_obj.getTime()/1000;
@@ -168,6 +181,9 @@
             items.forEach(function(item){
                 if (hyve.recall_enable){
                     store(item);
+                }
+                if (hyve.queue_enable){
+                    enqueue(item);
                 }
                 callback(item);
             });
@@ -197,11 +213,11 @@
         function jsonp(url, callback) {
             var s = document.createElement('script');
             s.setAttribute('src', url);
-            var callback_wrap = function(){
+            var wrap_callback = function(){
                 cleanup(s);
                 return callback.apply(this,arguments);
             };
-            hyve.callbacks['f' + counter] = callback_wrap;
+            hyve.callbacks['f' + counter] = wrap_callback;
             head.appendChild(s);
         }
 
@@ -246,6 +262,9 @@
     hyve.fetch = fetch;
     hyve.recall = recall;
     hyve.recall_enable = false;
+    hyve.replenish = replenish;
+    hyve.queue = {};
+    hyve.queue_enable = false;
     hyve.callbacks = [];
     hyve.links = {};
     hyve.feeds = {};
@@ -365,7 +384,9 @@ hyve.feeds['twitter'] = {
                         'date' : item.created_at,
                         'text' : item.text,
                         'links' : links,
-                        'source' : 'http://twitter.com/'+item.from_user+'/status/'+item.id,
+                        'source' : 'http://twitter.com/'+
+                                   item.from_user+
+                                   '/status/'+item.id,
                         'weight' : weight
                     },callback);
                 }
@@ -380,10 +401,12 @@ hyve.feeds['identica'] = {
     feed_url :'http://identi.ca/api/search.json?lang=en&q={{query}}{{#&callback=#callback}}',
     parse : function(data,query,callback){
         if (data.refresh_url){
-            this.feed_url = 'http://identi.ca/api/search.json' + data.refresh_url+ '{{#&callback=#callback}}';
+            this.feed_url = 'http://identi.ca/api/search.json'+
+                            data.refresh_url+
+                            '{{#&callback=#callback}}';
         }
         data.results.forEach(function(item){
-            process({
+            hyve.process({
                 'service' : 'identica',
                 'type' : 'text',
                 'query' : query,
@@ -431,7 +454,8 @@ hyve.feeds['facebook'] = {
                         'user' : {
                             'id' : item.from.id,
                             'name' : item.from.name,
-                            'avatar' : 'http://graph.facebook.com/'+item.from.id+'/picture'
+                            'avatar' : 'http://graph.facebook.com/'+
+                                       item.from.id+'/picture'
                         },
                         'id' : item.id,
                         'links': links,
