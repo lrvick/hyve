@@ -170,8 +170,10 @@
 
     // Manually re-classify items as needed, check for dupes, send to callback
     function process(item,callback){
-        var date_obj = new Date(item.date);
-        item.date = date_obj.getTime()/1000;
+        if (item.date != parseInt(item.date,10)){
+            var date_obj = new Date(item.date);
+            item.date = date_obj.getTime()/1000;
+        }
         items = [item];
         item.links = item.links || [];
         if (item.links.length > 0){
@@ -263,7 +265,7 @@
     hyve.recall = recall;
     hyve.recall_enable = false;
     hyve.replenish = replenish;
-    hyve.queue = {};
+    hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]};
     hyve.queue_enable = false;
     hyve.callbacks = [];
     hyve.links = {};
@@ -415,7 +417,7 @@ hyve.feeds['identica'] = {
                     'name' : item.from_user,
                     'avatar' : item.profile_image_url
                 },
-                'id' : item.id_str,
+                'id' : item.id,
                 'date' : item.created_at,
                 'text' : item.text,
                 'source' : item.source,
@@ -515,7 +517,7 @@ hyve.feeds['reddit'] = {
                     },
                     'id' : item.data.id,
                     'date' : item.data.created_utc,
-                    'text' : item.title,
+                    'text' : item.data.title,
                     'links'  : links,
                     'source' : item.data.url,
                     'thumbnail': item.data.thumbnail,
@@ -735,7 +737,7 @@ hyve.feeds['flickr'] = {
                         'avatar' : ''
                     },
                     'id' : id,
-                    'date' : item.published,
+                    'date' : item.dateupload,
                     'text' : item.title,
                     'source' : item.link,
                     'source_img' : source_img,
@@ -816,7 +818,7 @@ hyve.feeds['wordpress'] = {
             this.items_seen = {};
         }
         if (data){
-            data.value.items.forEach(function(item){
+            data.value.items[0].json.forEach(function(item){
                 if (!this.items_seen[item.guid]){
                     this.items_seen[item.guid] = true;
                     hyve.process({
@@ -829,8 +831,8 @@ hyve.feeds['wordpress'] = {
                             'profile' :'',
                             'avatar' : ''
                         },
-                        'id' : item.id,
-                        'date' : '', //TODO: normalize
+                        'id' : item.guid,
+                        'date' : item.epoch_time,
                         'text' : item.title,
                         'description':item.content,
                         'source' : item.guid,
@@ -888,9 +890,12 @@ hyve.feeds['foursquare'] = {
                     if (item.views){
                         weight = item.stats.userCount;
                     }
+                    date_obj = new Date();
+                    date = date.getTime();
                     hyve.process({
                         'service' : 'foursquare',
                         'type' : 'checkin',
+                        'date' : date,
                         'geo' : item.location.lat+","+item.location.lng,
                         'query' : query,
                         'user' : {
