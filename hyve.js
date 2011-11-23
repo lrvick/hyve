@@ -891,7 +891,7 @@ hyve.feeds['foursquare'] = {
                         weight = item.stats.userCount;
                     }
                     date_obj = new Date();
-                    date = date.getTime();
+                    date = date_obj.getTime();
                     hyve.process({
                         'service' : 'foursquare',
                         'type' : 'checkin',
