@@ -135,10 +135,16 @@
     // Place an item in an appropriate queue depending on its defined 'type'
     function enqueue(item){
         if(item){
-            hyve.queue[item.type].push(item);
             hyve.queue[item.type].sort(function(a,b){
                 return b['date'] - a['date'];
             });
+            var latest_date = 0;
+            if (hyve.queue[item.type].length > 0){
+                latest_date = hyve.queue[item.type][0].date;
+            }
+            if (item.date > latest_date){
+                hyve.queue[item.type].unshift(item);
+            }
         } else {
             throw('enqueue: an undefined item was inputted');
         }
@@ -147,10 +153,26 @@
     // Persistantly stores an item in the browser via localStorage
     function store(item){
         var items_key = item.type+':'+item.query;
-        var items = JSON.parse(localStorage[items_key]) || [];
-        items.push(item);
+        var items = localStorage.getItem(items_key);
+        if (items){
+            items = JSON.parse(items);
+        } else {
+            items = [];
+        }
+        var latest_date = 0;
+        if (items.length > 0){
+            latest_date = items[0].date;
+        }
+        if (item.date > latest_date){
+            items.unshift(item);
+        }
         trunc_items = items.splice(0,1000);
-        localStorage[items_key] = JSON.stringify(trunc_items);
+        try {
+            localStorage.setItem(items_key,JSON.stringify(trunc_items));
+        } catch(e) {
+            console.log('store: localStorage quota has been exceeded. Emptying');
+            localStorage.clear();
+        }
     }
 
     // Recall previously saved items from localStorage
