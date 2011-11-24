@@ -138,15 +138,11 @@
             hyve.queue[item.type].sort(function(a,b){
                 return b['date'] - a['date'];
             });
-            if (hyve.recall === true){
-                var last_date_key = item.service+':'+item.query+':last_date';
-                var last_date = localStorage.getItem(last_date_key);
-                if (!last_date){
-                    last_date = 0;
-                }
-                if (item.date > last_date){
+            if (hyve.recall_enable === true){
+                var check_id_key = item.service+':'+item.query+':'+item.id;
+                if (localStorage.getItem(check_id_key) != 'true'){
                     hyve.queue[item.type].unshift(item);
-                    localStorage.setItem(last_date_key);
+                    store(item);
                 }
             } else {
                 hyve.queue[item.type].unshift(item);
@@ -165,16 +161,12 @@
         } else {
             items = [];
         }
-        var last_date_key = item.service+':'+item.query+':last_date';
-        var last_date = localStorage.getItem(last_date_key);
-        if (!last_date){
-             last_date = 0;
-        }
-        if (item.date > last_date){
+        var check_id_key = item.service+':'+item.query+':'+item.id;
+        if (localStorage.getItem(check_id_key) != 'true'){
             items.unshift(item);
-            localStorage.setItem(last_date_key);
+            localStorage.setItem(check_id_key,true);
         }
-        trunc_items = items.splice(0,1000);
+        trunc_items = items.splice(0,200);
         try {
             localStorage.setItem(items_key,JSON.stringify(trunc_items));
         } catch(e) {
@@ -195,7 +187,7 @@
 
     // Reset queue and refill it with any previously stored data if any exists
     function replenish(query,types){
-        if (hyve.recall === true){
+        if (hyve.recall_enable === true){
             hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]};
             types = types || Object.keys(hyve.queue);
             types.forEach(function(type){
@@ -217,9 +209,6 @@
         }
         if (items){
             items.forEach(function(item){
-                if (hyve.recall_enable){
-                    store(item);
-                }
                 if (hyve.queue_enable){
                     enqueue(item);
                 }
