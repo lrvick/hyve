@@ -178,7 +178,7 @@
         try {
             localStorage.setItem(items_key,JSON.stringify(trunc_items));
         } catch(e) {
-            console.log('store: localStorage quota has been exceeded. Emptying');
+            console.error('store: localStorage quota has been exceeded. Emptying', e);
             localStorage.clear();
         }
     }
@@ -195,11 +195,13 @@
 
     // Reset queue and refill it with any previously stored data if any exists
     function replenish(query,types){
-        hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]};
-        types = types || Object.keys(hyve.queue);
-        types.forEach(function(type){
-            hyve.queue[type] = recall(type,query);
-        });
+        if (hyve.recall === true){
+            hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]};
+            types = types || Object.keys(hyve.queue);
+            types.forEach(function(type){
+                hyve.queue[type] = recall(type,query);
+            });
+        }
     }
 
     // Manually re-classify items as needed, check for dupes, send to callback
@@ -221,7 +223,11 @@
                 if (hyve.queue_enable){
                     enqueue(item);
                 }
-                callback(item);
+                try {
+                    callback(item);
+                } catch(e) {
+                    console.error('process:', e.message, item);
+                }
             });
         }
     }
@@ -248,13 +254,16 @@
         // Requires an URI using JSONP
         function jsonp(url, callback) {
             var s = document.createElement('script');
-            s.setAttribute('src', url);
+            s.type = 'text/javascript';
+            s.async = true;
+            s.src = url;
             var wrap_callback = function(){
                 cleanup(s);
                 return callback.apply(this,arguments);
             };
             hyve.callbacks['f' + counter] = wrap_callback;
-            head.appendChild(s);
+            var x = document.getElementsByTagName('script')[0];
+            x.parentNode.insertBefore(s,x);
         }
 
         // Requires an URI using Node.js's request library
