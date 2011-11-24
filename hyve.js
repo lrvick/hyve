@@ -138,11 +138,17 @@
             hyve.queue[item.type].sort(function(a,b){
                 return b['date'] - a['date'];
             });
-            var latest_date = 0;
-            if (hyve.queue[item.type].length > 0){
-                latest_date = hyve.queue[item.type][0].date;
-            }
-            if (item.date > latest_date){
+            if (hyve.recall === true){
+                var last_date_key = item.service+':'+item.query+':last_date';
+                var last_date = localStorage.getItem(last_date_key);
+                if (!last_date){
+                    last_date = 0;
+                }
+                if (item.date > last_date){
+                    hyve.queue[item.type].unshift(item);
+                    localStorage.setItem(last_date_key);
+                }
+            } else {
                 hyve.queue[item.type].unshift(item);
             }
         } else {
@@ -159,12 +165,14 @@
         } else {
             items = [];
         }
-        var latest_date = 0;
-        if (items.length > 0){
-            latest_date = items[0].date;
+        var last_date_key = item.service+':'+item.query+':last_date';
+        var last_date = localStorage.getItem(last_date_key);
+        if (!last_date){
+             last_date = 0;
         }
-        if (item.date > latest_date){
+        if (item.date > last_date){
             items.unshift(item);
+            localStorage.setItem(last_date_key);
         }
         trunc_items = items.splice(0,1000);
         try {
