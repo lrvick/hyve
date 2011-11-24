@@ -262,8 +262,7 @@
             get({uri: url}, function(error, res, data) {
                 try {
                     callback(JSON.parse(data));
-                }
-                catch(e){
+                } catch(e){
                     callback({ }, e);
                 }
             });
@@ -368,9 +367,13 @@ hyve.feeds['bitly'] = {
         var long_urls = [];
         if (data.data.expand){
             data.data.expand.forEach(function(link){
-                long_urls.push(link.long_url);
+                if (link.long_url){
+                    long_urls.push(link.long_url);
+                }
             });
-            item.links = long_urls;
+            if (long_urls.length > 0){
+                item.links = long_urls;
+            }
         }
         hyve.process(item,callback);
     }
