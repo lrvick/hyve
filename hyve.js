@@ -86,7 +86,9 @@
         services = custom_services || Object.keys(hyve.feeds);
         services.forEach(function(service){
             if (hyve.feeds[service].lock) {
-                hyve.feeds[service].feed_url = hyve.feeds[service].orig_url;
+                if (hyve.feeds[service].orig_url){
+                    hyve.feeds[service].feed_url = hyve.feeds[service].orig_url;
+                }
                 interval_id =  hyve.feeds[service].lock;
                 clearInterval(interval_id);
             }
