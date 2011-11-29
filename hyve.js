@@ -122,7 +122,6 @@
                         new_item.thumbnail = link;
                     }
                     new_items.push(new_item);
-                    console.log('FAKE IMAGE IS FAKE',new_item,new_item.thumbnail);
                 }
             } else {
                 new_items.push(item);
