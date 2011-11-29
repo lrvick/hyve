@@ -115,13 +115,14 @@
                     var new_item = item;
                     new_item.links = [];
                     new_item.type = 'image';
-                if (!new_item.source_img){
-                    new_item.source_img = item.link;
-                }
-                if (!new_item.thumbnail){
-                    new_item.thumbnail = item.link;
-                }
+                    if (!new_item.source_img){
+                        new_item.source_img = link;
+                    }
+                    if (!new_item.thumbnail){
+                        new_item.thumbnail = link;
+                    }
                     new_items.push(new_item);
+                    console.log('FAKE IMAGE IS FAKE',new_item,new_item.thumbnail);
                 }
             } else {
                 new_items.push(item);
@@ -172,7 +173,7 @@
         try {
             localStorage.setItem(items_key,JSON.stringify(trunc_items));
         } catch(e) {
-            console.error('store: localStorage quota has been exceeded. Emptying', e);
+            console.error('store: localStorage quota exceeded. Emptying', e);
             localStorage.clear();
         }
     }
@@ -190,7 +191,13 @@
     // Reset queue and refill it with any previously stored data if any exists
     function replenish(query,types){
         if (hyve.recall_enable === true){
-            hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]};
+            hyve.queue = {
+                'text':[],
+                'link':[],
+                'video':[],
+                'image':[],
+                'checkin':[]
+            };
             types = types || Object.keys(hyve.queue);
             types.forEach(function(type){
                 hyve.queue[type] = recall(type,query);
