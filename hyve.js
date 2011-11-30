@@ -105,7 +105,7 @@
                 hyve.links[link] = true;
                 services.forEach(function(service){
                     if (hyve.feeds[service].claim){
-                        var new_item = hyve.feeds[service].claim(link,item);
+                        var new_item = hyve.feeds[service].claim(link,item,callback);
                         if (new_item){
                             new_items.push(new_item);
                         }
@@ -223,7 +223,7 @@
                 try {
                     callback(item);
                 } catch(e) {
-                    console.error('process:', e.message, item);
+                    console.error('process:', e.message, item.service, item.id, item);
                 }
             });
         }
@@ -406,7 +406,11 @@ hyve.feeds['twitter'] = {
                     var links = [];
                     if (item.entities.urls) {
                         item.entities.urls.forEach(function(url){
-                            links.push(url.expanded_url);
+                            if(url.expanded_url){
+                                links.push(url.expanded_url);
+                            } else {
+                                links.push("http://"+url.url);
+                            }
                         });
                     }
                     var weight = 0;
@@ -860,7 +864,7 @@ hyve.feeds['wordpress'] = {
         if (!this.items_seen){
             this.items_seen = {};
         }
-        if (data){
+        if (data.value.items.length > 0){
             data.value.items[0].json.forEach(function(item){
                 if (!this.items_seen[item.guid]){
                     this.items_seen[item.guid] = true;
