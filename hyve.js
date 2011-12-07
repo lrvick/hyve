@@ -89,8 +89,7 @@
                 if (hyve.feeds[service].orig_url){
                     hyve.feeds[service].feed_url = hyve.feeds[service].orig_url;
                 }
-                interval_id =  hyve.feeds[service].lock;
-                clearInterval(interval_id);
+                clearInterval(hyve.feeds[service].lock);
             }
         });
     }
@@ -389,12 +388,20 @@ hyve.feeds['twitter'] = {
     methods : ['search'],
     interval : 2000,
     result_type : 'mixed', // mixed, recent, popular
-    feed_url :'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True&{{#&result_type=#result_type}}{{#&callback=#callback}}',
+    since_ids : {},
+    feed_url :'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True&{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}',
+    format_url : function(query){
+        var since_arg;
+        if (this.since_ids[query]){
+            since_arg = '&since_id='+this.since_ids[query];
+        }
+        return { query: query,
+                 result_type: this.result_type,
+                 since: since_arg };
+    },
     parse : function(data,query,callback){
         if (data.refresh_url){
-            this.feed_url = 'http://search.twitter.com/search.json' +
-                            data.refresh_url +
-                            '{{#&callback=#callback}}';
+            this.since_ids[query] = data.refresh_url.replace(/\?since_id=([0-9]+).*/ig, "$1");
         }
         if (!this.items_seen){
             this.items_seen = {};
@@ -447,12 +454,20 @@ hyve.feeds['twitter'] = {
 hyve.feeds['identica'] = {
     methods : ['search'],
     interval : 6000,
-    feed_url :'http://identi.ca/api/search.json?lang=en&q={{query}}{{#&callback=#callback}}',
+    since_ids : {},
+    feed_url :'http://identi.ca/api/search.json?lang=en&q={{query}}{{since}}{{#&callback=#callback}}',
+    format_url : function(query){
+        var since_arg;
+        if (this.since_ids[query]){
+            since_arg = '&since_id='+this.since_ids[query];
+        }
+        return { query: query,
+                 result_type: this.result_type,
+                 since: since_arg };
+    },
     parse : function(data,query,callback){
         if (data.refresh_url){
-            this.feed_url = 'http://identi.ca/api/search.json'+
-                            data.refresh_url+
-                            '{{#&callback=#callback}}';
+            this.since_ids[query] = data.refresh_url.replace(/\?since_id=([0-9]+).*/ig, "$1");
         }
         data.results.forEach(function(item){
             hyve.process({
@@ -578,7 +593,16 @@ hyve.feeds['reddit'] = {
 hyve.feeds['digg'] = {
     methods : ['search'],
     interval : 15000,
+    min_dates : {},
     feed_url : 'http://services.digg.com/2.0/search.search?query={{query}}&count=20&sort=date-desc&type=javascript{{#&callback=#callback}}',
+    format_url : function(query){
+        var since_arg;
+        if (this.min_dates[query]){
+            since_arg = '&min_date='+this.min_dates[query];
+        }
+        return { query: query,
+                 since: since_arg };
+    },
     parse : function(data,query,callback){
         if (data.stories[0]){
             if (!this.orig_url){
@@ -589,7 +613,7 @@ hyve.feeds['digg'] = {
             }
             var min_date = data.stories[0].submit_date;
             if (min_date){
-                this.feed_url = this.orig_url + '&min_date=' + min_date;
+                this.min_dates[query] = min_date;
             }
             data.stories.forEach(function(item){
                 if (!this.items_seen[item.id]){
