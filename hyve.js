@@ -484,7 +484,7 @@ hyve.feeds['identica'] = {
                 'id' : item.id,
                 'date' : item.created_at,
                 'text' : item.text,
-                'source' : item.source,
+                'source' : 'http://identica.com/bookmark/'+item.id,
                 'weight' : 1
             },callback);
         });
