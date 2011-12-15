@@ -434,7 +434,8 @@ hyve.feeds['twitter'] = {
                         'user' : {
                             'id' : item.from_user_id_str,
                             'name' : item.from_user,
-                            'avatar' : item.profile_image_url
+                            'avatar' : item.profile_image_url,
+                            'profile' : "http://twitter.com/"+item.from_user
                         },
                         'id' : item.id_str,
                         'date' : item.created_at,
@@ -477,7 +478,8 @@ hyve.feeds['identica'] = {
                 'user' : {
                     'id' : item.from_user_id_str,
                     'name' : item.from_user,
-                    'avatar' : item.profile_image_url
+                    'avatar' : item.profile_image_url,
+                    'profile' : "http://identi.ca/"+item.from_user
                 },
                 'id' : item.id,
                 'date' : item.created_at,
@@ -519,7 +521,8 @@ hyve.feeds['facebook'] = {
                             'id' : item.from.id,
                             'name' : item.from.name,
                             'avatar' : 'http://graph.facebook.com/'+
-                                       item.from.id+'/picture'
+                                       item.from.id+'/picture',
+                            'profile' : "http://facebook.com/"+item.from.id
                         },
                         'id' : item.id,
                         'links': links,
