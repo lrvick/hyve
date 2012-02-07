@@ -1001,7 +1001,7 @@ hyve.feeds['plus'] = {
                 if (!this.items_seen[item.id]){
                     this.items_seen[item.id] = true;
                     
-					hyve.process({
+                    hyve.process({
                         'service' : 'plus',
                         'type' : 'text',
                         'query' : query,
