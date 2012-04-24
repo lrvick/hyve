@@ -205,29 +205,75 @@
         }
     }
 
+
+	// similiar to java's hashCode function (32bit)
+	function string_hash(s) {
+		var hash = 0;
+		if (s.length === 0) {
+			return hash;
+		}
+		for (i = 0 ; i < s.length ; i ++ ) {
+			chr  = s.charCodeAt(i);
+			hash = ((hash << 5) - 5) + chr;
+			hash = hash & hash;
+		
+		}
+		return hash;
+	}
+
+	function store_hash(item) {
+		// if doesn't have hash we don't store
+		var hash = string_hash(item.text);
+	
+		if (hash) {
+			if (hyve.items_seen.indexOf(hash) > -1) {
+				// if hash exists signify to not process
+				return false;
+			} else {
+
+				if (hyve.items_seen.length > hyve.items_seen_size) {
+					// pop the last item and push to the top
+					hyve.items_seen.shift();
+				}
+				hyve.items_seen.push(hash);
+				
+				// if hash isn't seen signify to process item
+				return true;
+			}
+			
+		
+		}
+		// if no hash do not process
+		return false;	
+	}
+
     // Manually re-classify items as needed, check for dupes, send to callback
     function process(item,callback){
         if (item.date != parseInt(item.date,10)){
             var date_obj = new Date(item.date);
             item.date = date_obj.getTime()/1000;
         }
-        items = [item];
-        item.links = item.links || [];
-        if (item.links.length > 0){
-            items = claim(item,callback);
-        }
-        if (items){
-            items.forEach(function(item){
-                if (hyve.queue_enable){
-                    enqueue(item);
-                }
-                try {
-                    callback(item);
-                } catch(e) {
-                    console.error('process:', e.message, item.service, item.id, item);
-                }
-            });
-        }
+      
+		if (store_hash(item)) {
+
+			items = [item];
+			item.links = item.links || [];
+			if (item.links.length > 0){
+				items = claim(item,callback);
+			}
+			if (items){
+				items.forEach(function(item){
+					if (hyve.queue_enable){
+						enqueue(item);
+					}
+					try {
+						callback(item);
+					} catch(e) {
+						console.error('process:', e.message, item.service, item.id, item);
+					}
+				});
+			}
+		}
     }
 
     // Fetches a JSON stream
@@ -307,8 +353,10 @@
     hyve.recall_enable = false;
     hyve.replenish = replenish;
     hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]};
-    hyve.queue_enable = false;
-    hyve.callbacks = [];
+    hyve.queue_enable = false; // enables queuing; no queue by default
+    hyve.items_seen = [];
+	hyve.items_seen_size = 5000; // length of buffer before rolling begins
+	hyve.callbacks = [];
     hyve.links = {};
     hyve.feeds = {};
 
