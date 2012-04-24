@@ -1,13 +1,12 @@
 #!/usr/bin/node
-;
 
-var hyve = require('./hyve.js');
+var hyve = require('./hyve.js')
 
-hyve.queue_enable = false;
-hyve.recall_enable = false;
+hyve.queue_enable = false
+hyve.recall_enable = false
 
-console.log('Starting Stream');
+console.log('Starting Stream')
 
 hyve.stream('android', function(data){
-    console.log(data.service +' : '+ data.text);
-},['facebook','twitter']);
+    console.log(data.service +' : '+ data.text)
+},['facebook','twitter'])
