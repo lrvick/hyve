@@ -218,34 +218,32 @@
 		}
 		for (i = 0 ; i < s.length ; i ++ ) {
 			chr  = s.charCodeAt(i);
-			hash = ((hash << 5) - 5) + chr;
+			hash = ((hash << 5) - hash) + chr;
 			hash = hash & hash;
 		
 		}
 		return hash;
 	}
 
-	function store_hash(item) {
-		// if doesn't have hash we don't store
+	function processable(item) {
+		
 		var hash = string_hash(item.text);
 	
 		if (hash) {
 			if (hyve.items_seen.indexOf(hash) > -1) {
-				// if hash exists signify to not process
+				// if hash exists do not process
 				return false;
 			} else {
 
+				// if list length limit is reached pop the last item and push to the top
 				if (hyve.items_seen.length > hyve.items_seen_size) {
-					// pop the last item and push to the top
 					hyve.items_seen.shift();
 				}
 				hyve.items_seen.push(hash);
 				
-				// if hash isn't seen signify to process item
+				// if hash isn't seen process item
 				return true;
 			}
-			
-		
 		}
 		// if no hash do not process
 		return false;	
@@ -258,8 +256,7 @@
             item.date = date_obj.getTime()/1000
         }
       
-		if (store_hash(item)) {
-
+		if (processable(item)) {
 			items = [item];
 			item.links = item.links || [];
 			if (item.links.length > 0){
@@ -277,7 +274,8 @@
 					}
 				});
 			}
-		}
+		} 
+
         
     }
 
@@ -349,7 +347,6 @@
 
 
     // Exports data to the outside world
-<<<<<<< HEAD
     hyve.stream = stream;
     hyve.stop = stop;
     hyve.process = process;
@@ -361,25 +358,10 @@
     hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]};
     hyve.queue_enable = false; // enables queuing; no queue by default
     hyve.items_seen = [];
-	hyve.items_seen_size = 5000; // length of buffer before rolling begins
-	hyve.callbacks = [];
+    hyve.items_seen_size = 5000; // length of buffer before rolling begins
+    hyve.callbacks = [];
     hyve.links = {};
     hyve.feeds = {};
-=======
-    hyve.stream = stream
-    hyve.stop = stop
-    hyve.process = process
-    hyve.format = format
-    hyve.fetch = fetch
-    hyve.recall = recall
-    hyve.recall_enable = false
-    hyve.replenish = replenish
-    hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]}
-    hyve.queue_enable = false
-    hyve.callbacks = []
-    hyve.links = {}
-    hyve.feeds = {}
->>>>>>> 898829b9a2628f482b91b77500fa388ec389f861
 
 
     //Various service specific modules
