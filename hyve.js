@@ -210,44 +210,43 @@
     }
 
 
-	// similiar to java's hashCode function (32bit)
-	function string_hash(s) {
-		var hash = 0;
-		if (s.length === 0) {
-			return hash;
-		}
-		for (i = 0 ; i < s.length ; i ++ ) {
-			chr  = s.charCodeAt(i);
-			hash = ((hash << 5) - hash) + chr;
-			hash = hash & hash;
-		
-		}
-		return hash;
-	}
+    // similiar to java's hashCode function (32bit)
+    function string_hash(s) {
+        var hash = 0;
+        if (s.length === 0) {
+            return hash;
+        }
+        for (i = 0 ; i < s.length ; i ++ ) {
+            chr  = s.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash = hash & hash;
+        }
+        return hash;
+    }
 
-	function processable(item) {
-		
-		var hash = string_hash(item.text);
-	
-		if (hash) {
-			if (hyve.items_seen.indexOf(hash) > -1) {
-				// if hash exists do not process
-				return false;
-			} else {
+    function processable(item) {
 
-				// if list length limit is reached pop the last item and push to the top
-				if (hyve.items_seen.length > hyve.items_seen_size) {
-					hyve.items_seen.shift();
-				}
-				hyve.items_seen.push(hash);
-				
-				// if hash isn't seen process item
-				return true;
-			}
-		}
-		// if no hash do not process
-		return false;	
-	}
+        var hash = string_hash(item.text);
+
+        if (hash) {
+            if (hyve.items_seen.indexOf(hash) > -1) {
+                // if hash exists do not process
+                return false;
+            } else {
+
+                // if list length limit is reached pop the last item and push to the top
+                if (hyve.items_seen.length > hyve.items_seen_size) {
+                    hyve.items_seen.shift();
+                }
+                hyve.items_seen.push(hash);
+
+                // if hash isn't seen process item
+                return true;
+            }
+        }
+        // if no hash do not process
+        return false;
+    }
 
     // Manually re-classify items as needed, check for dupes, send to callback
     function process(item,callback){
@@ -255,28 +254,27 @@
             var date_obj = new Date(item.date)
             item.date = date_obj.getTime()/1000
         }
-      
-		if (processable(item)) {
-			items = [item];
-			item.links = item.links || [];
-			if (item.links.length > 0){
-				items = claim(item,callback);
-			}
-			if (items){
-				items.forEach(function(item){
-					if (hyve.queue_enable){
-						enqueue(item);
-					}
-					try {
-						callback(item);
-					} catch(e) {
-						console.error('process:', e.message, item.service, item.id, item);
-					}
-				});
-			}
-		} 
 
-        
+        if (processable(item)) {
+            items = [item];
+            item.links = item.links || [];
+            if (item.links.length > 0){
+                items = claim(item,callback);
+            }
+            if (items){
+                items.forEach(function(item){
+                    if (hyve.queue_enable){
+                        enqueue(item);
+                    }
+                    try {
+                        callback(item);
+                    } catch(e) {
+                        console.error('process:', e.message, item.service, item.id, item);
+                    }
+                });
+            }
+        }
+
     }
 
     // Fetches a JSON stream
