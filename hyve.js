@@ -225,23 +225,22 @@
     }
 
     function processable(item) {
+        if (item.text) {
+            var hash = string_hash(item.text);
 
-        var hash = string_hash(item.text);
+            if (hash) {
+                if (hyve.items_seen.indexOf(hash) > -1) {
+                    return false;
+                } else {
+                    // if list length limit is reached pop the last item and push to the top
+                    if (hyve.items_seen.length > hyve.items_seen_size) {
+                        hyve.items_seen.shift();
+                    }
+                    hyve.items_seen.push(hash);
 
-        if (hash) {
-            if (hyve.items_seen.indexOf(hash) > -1) {
-                // if hash exists do not process
-                return false;
-            } else {
-
-                // if list length limit is reached pop the last item and push to the top
-                if (hyve.items_seen.length > hyve.items_seen_size) {
-                    hyve.items_seen.shift();
+                    // if hash isn't seen process item
+                    return true;
                 }
-                hyve.items_seen.push(hash);
-
-                // if hash isn't seen process item
-                return true;
             }
         }
         // if no hash do not process
@@ -255,14 +254,16 @@
             item.date = date_obj.getTime()/1000
         }
 
-        if (processable(item)) {
-            items = [item];
-            item.links = item.links || [];
-            if (item.links.length > 0){
-                items = claim(item,callback);
-            }
-            if (items){
-                items.forEach(function(item){
+        items = [item];
+        item.links = item.links || [];
+        if (item.links.length > 0){
+            items = claim(item,callback);
+        }
+        if (items){
+            items.forEach(function(item){
+                // check if item is processable, i.e not a dupe
+                if (processable(item)) {
+                    console.log('hitting processable for item');
                     if (hyve.queue_enable){
                         enqueue(item);
                     }
@@ -271,10 +272,9 @@
                     } catch(e) {
                         console.error('process:', e.message, item.service, item.id, item);
                     }
-                });
-            }
+                }
+            });
         }
-
     }
 
     // Fetches a JSON stream
