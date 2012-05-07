@@ -160,6 +160,16 @@
         }
     }
 
+    // Removes an item from hyves queue
+    function dequeue(item) {
+        if (item) {
+            idx = hyve.queue[item.type].indexOf(item)
+            // use splice instead of delete as delete
+            // leaves undefined element in array
+            if (idx != -1) hyve.queue[item.type].splice(idx, 1)
+        }
+    }
+
     // Persistantly stores an item in the browser via localStorage
     function store(item){
         var items_key = item.type+':'+item.query
@@ -355,6 +365,7 @@
     hyve.replenish = replenish;
     hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]};
     hyve.queue_enable = false; // enables queuing; no queue by default
+    hyve.dequeue = dequeue;
     hyve.items_seen = [];
     hyve.items_seen_size = 5000; // length of buffer before rolling begins
     hyve.callbacks = [];
