@@ -273,7 +273,6 @@
             items.forEach(function(item){
                 // check if item is processable, i.e not a dupe
                 if (processable(item)) {
-                    console.log('hitting processable for item');
                     if (hyve.queue_enable){
                         enqueue(item);
                     }
