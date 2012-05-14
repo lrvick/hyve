@@ -38,39 +38,47 @@
     }
 
     // Pulls data from several streams and handles all with given callback
-    function stream(query, callback, custom_services) {
+    function stream(query, callback, custom_services, method) {
         callback = callback || function(){}
         services = custom_services || Object.keys(hyve.feeds)
-        if (custom_services){
-            services = custom_services
-        } else {
-            services = []
-            all_services = Object.keys(hyve.feeds)
-            all_services.forEach(function(service){
-               if ('search' in oc(hyve.feeds[service.toLowerCase()].methods)){
-                   services.push(service.toLowerCase())
-               }
-            })
-        }
+        method = method || 'search'
+
+        // use services that contain proper method
+        services = []
+        check_services = custom_services || Object.keys(hyve.feeds);
+        console.log(check_services)
+        check_services.forEach(function(service){
+            if (method in oc(hyve.feeds[service.toLowerCase()].methods)){
+               services.push(service.toLowerCase())
+           }
+        })
+        console.log(services);
+
         services.forEach(function(service){
-            if (!hyve.feeds[service].orig_url == undefined ){
-                hyve.feeds[service].orig_url = hyve.feeds[service].feed_url
+            // set the orig_url to the services feed_url for this method
+            if (!hyve.feeds[service].orig_url){
+                hyve.feeds[service].orig_url = hyve.feeds[service].feed_urls[method]
             }
+
             var options = hyve.feeds[service]
+
             var runFetch = function(){
                 var feed_url
+
                 if (hyve.feeds[service].format_url){
-                    feed_url = format( options.feed_url
+                    feed_url = format( options.feed_urls[method]
                                      , hyve.feeds[service].format_url(query)
                                      )
                 } else {
-                    feed_url = format( options.feed_url
+                    feed_url = format( options.feed_urls[method]
                                     ,{ query:  query
                                     ,  url_suffix: options.url_suffix
                                     ,  result_type: options.result_type
                                     ,  api_key: options.api_key
+                                    ,  auth_user: options.auth_user
                                     })
                 }
+
                 if (hyve.feeds[service].fetch_url){
                     hyve.feeds[service].fetch_url(service,query,callback)
                 } else {
@@ -84,7 +92,19 @@
         })
     }
 
-    // Stops any running streams for iven services
+    // specific wrappers for stream functionality
+    var friends = {
+        stream: function(callback, custom_services) {
+            return stream('', callback, custom_services, 'friends');
+        }
+    }
+    var search = {
+        stream: function(query, callback, custom_services) {
+            return stream(query, callback, custom_services, 'search');
+        }
+    }
+
+    // Stops any running streams for given services
     function stop(custom_services) {
         var services
         services = custom_services || Object.keys(hyve.feeds)
@@ -167,6 +187,8 @@
             // use splice instead of delete as delete
             // leaves undefined element in array
             if (idx != -1) hyve.queue[item.type].splice(idx, 1)
+        } else {
+            throw('dequeue: an undefined item was inputted')
         }
     }
 
@@ -354,7 +376,8 @@
 
 
     // Exports data to the outside world
-    hyve.stream = stream;
+    hyve.friends = friends;
+    hyve.search = search;
     hyve.stop = stop;
     hyve.process = process;
     hyve.format = format;
@@ -449,7 +472,8 @@
         interval : 2000,
         result_type : 'mixed', // mixed, recent, popular
         since_ids : {},
-        feed_url :'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True&{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}',
+        feed_urls : {
+            search: 'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True&{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}'        },
         format_url : function(query){
             var since_arg
             if (this.since_ids[query]){
@@ -515,7 +539,9 @@
         methods : ['search'],
         interval : 6000,
         since_ids : {},
-        feed_url :'http://identi.ca/api/search.json?lang=en&q={{query}}{{since}}{{#&callback=#callback}}',
+        feed_urls :{
+            search: 'http://identi.ca/api/search.json?lang=en&q={{query}}{{since}}{{#&callback=#callback}}'
+        },
         format_url : function(query){
             var since_arg
             if (this.since_ids[query]){
@@ -553,7 +579,9 @@
     hyve.feeds['facebook'] = {
         methods : ['search'],
         interval : 3000,
-        feed_url : 'https://graph.facebook.com/search?q={{query}}&limit=25&type=post{{since}}{{#&callback=#callback}}',
+        feed_urls : {
+            search: 'https://graph.facebook.com/search?q={{query}}&limit=25&type=post{{since}}{{#&callback=#callback}}'
+        },
         format_url : function(query){
             var since_arg = ''
             if (this.since){
@@ -600,7 +628,9 @@
         methods : ['search'],
         interval : 5000,
         result_type : 'relevance', // new, relevence, top
-        feed_url : 'http://www.reddit.com/search.json?q={{query}}{{#&sort=#result_type}}{{#&jsonp=#callback}}{{before}}',
+        feed_urls : {
+            search: 'http://www.reddit.com/search.json?q={{query}}{{#&sort=#result_type}}{{#&jsonp=#callback}}{{before}}'
+        },
         format_url : function(query){
             var before_arg = ''
             if (this.before){
@@ -656,7 +686,9 @@
         methods : ['search'],
         interval : 15000,
         min_dates : {},
-        feed_url : 'http://services.digg.com/2.0/search.search?query={{query}}&count=20&sort=date-desc&type=javascript{{#&callback=#callback}}',
+        feed_urls : {
+            search: 'http://services.digg.com/2.0/search.search?query={{query}}&count=20&sort=date-desc&type=javascript{{#&callback=#callback}}'
+        },
         format_url : function(query){
             var since_arg
             if (this.min_dates[query]){
@@ -715,7 +747,9 @@
     hyve.feeds['delicious'] = {
         methods : ['search'],
         interval : 15000,
-        feed_url : 'http://feeds.delicious.com/v2/json/tag/{{query}}?count=20{{#&callback=#callback}}',
+        feed_urls : {
+            search: 'http://feeds.delicious.com/v2/json/tag/{{query}}?count=20{{#&callback=#callback}}'
+        },
         parse : function(data,query,callback){
             if (!this.items_seen){
                 this.items_seen = {}
@@ -747,7 +781,9 @@
     hyve.feeds['picasa'] = {
         methods : ['search'],
         interval : 15000,
-        feed_url : 'https://picasaweb.google.com/data/feed/api/all?q={{query}}&max-results=20&kind=photo&alt=json{{#&callback=#callback}}',
+        feed_urls : {
+            search: 'https://picasaweb.google.com/data/feed/api/all?q={{query}}&max-results=20&kind=photo&alt=json{{#&callback=#callback}}'
+        },
         parse : function(data,query,callback){
             var newest_date
             var newest_epoch
@@ -813,7 +849,9 @@
         api_key : '',
         url_suffix_auth : 'rest/?method=flickr.photos.search&',
         url_suffix_anon : 'feeds/photos_public.gne?',
-        feed_url : 'http://api.flickr.com/services/{{url_suffix}}&per_page=20&format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}',
+        feed_urls : {
+            search: 'http://api.flickr.com/services/{{url_suffix}}&per_page=20&format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}'
+        },
         format_url : function(query){
             var url_suffix
             if (this.api_key){
@@ -883,11 +921,15 @@
     }
 
     hyve.feeds['youtube'] = {
-        methods : ['search','claim'],
+        methods : ['search','claim', 'friends'],
         interval : 8000,
         result_type : 'videos',  //  videos,top_rated, most_popular, standard_feeds/most_recent, most_dicsussed, most_responded, recently_featured, on_the_web
         feed_suffix : '', // '', standardfeeds/ - if '' result_type must be 'videos'
-        feed_url : 'http://gdata.youtube.com/feeds/api/{{feed_suffix}}{{result_type}}?q={{query}}&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
+        auth_user : '', // user for personal streams
+        feed_urls : {
+            search: 'http://gdata.youtube.com/feeds/api/{{feed_suffix}}{{result_type}}?q={{query}}&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
+            friends: 'https://gdata.youtube.com/feeds/api/users/{{auth_user}}/newsubscriptionvideos?v=2&alt=jsonc'
+        },
         claim : function(link,item){
             if (link.search(/youtu.be|youtube.com.*v=/i) != -1){
                 item.links = []
@@ -908,44 +950,56 @@
             }
         },
         parse : function(data,query,callback){
+            console.log('data = '  + data);
             if (!this.items_seen){
                 this.items_seen = {}
             }
-            if (data.data.items){
-                data.data.items.forEach(function(item){
-                    if (!this.items_seen[item.id]){
-                        this.items_seen[item.id] = true
-                        var weight = 0
-                        if (item.views){
-                            weight = item.stats.userCount
-                        }
-                        hyve.process({
-                            'service' : 'youtube',
-                            'type' : 'video',
-                            'query' : query,
-                            'user' : {
-                                'id' : item.uploader,
-                                'name' : item.uploader,
-                                'profile' : 'http://youtube.com/' + item.uploader,
-                                'avatar' : ''
-                            },
-                            'id' : item.id,
-                            'date' : item.uploaded,
-                            'text' : item.title,
-                            'source' : 'http://youtu.be/'+ item.id,
-                            'thumbnail':'http://i.ytimg.com/vi/' + item.id + '/hqdefault.jpg',
-                            'weight' : weight
-                        },callback)
-                    }
-                }, this)
-            }
+
+            items = data.data.items;
+
+            items.forEach(function(item){
+                var id = item.id;
+                var uploader = item.uploader;
+                var uploaded = item.uploaded;
+                var category = item.category;
+                var title = item.title;
+                var description = item.description;
+                var weight = 0;
+                if (item.views) {
+                    weight = item.stats.userCount
+                }
+
+                if (!this.items_seen[item.id]) {
+                    this.items_seen[item.id] = true
+
+                    hyve.process({
+                        'service' : 'youtube',
+                        'type' : 'video',
+                        'query' : query,
+                        'user' : {
+                            'id' : uploader,
+                            'name' : uploader,
+                            'profile' : 'http://youtube.com/' + uploader,
+                            'avatar' : ''
+                        },
+                        'id' : id,
+                        'date' : uploaded,
+                        'text' : title,
+                        'source' : 'http://youtu.be/'+ id,
+                        'thumbnail':'http://i.ytimg.com/vi/' + id + '/hqdefault.jpg',
+                        'weight' : weight
+                    }, callback)
+                }
+            }, this);
         }
     }
 
     hyve.feeds['wordpress'] = {
         methods : ['search'],
         interval : 10000,
-        feed_url : 'http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D{{query}}%26s%3Ddate%26f%3Djson{{#&_callback=#callback}}',
+        feed_urls : {
+            search: 'http://pipes.yahoo.com/pipes/pipe.run?_id=332d9216d8910ba39e6c2577fd321a6a&_render=json&u=http%3A%2F%2Fen.search.wordpress.com%2F%3Fq%3D{{query}}%26s%3Ddate%26f%3Djson{{#&_callback=#callback}}'
+        },
         parse : function(data,query,callback){
             if (!this.items_seen){
                 this.items_seen = {}
@@ -982,7 +1036,9 @@
         interval : 15000,
         client_id: '',
         client_secret: '',
-        feed_url :'https://api.foursquare.com/v2/venues/search?query={{query}}{{#&ll=#latlog}}&limit=20{{#&client_id=#client_id}}{{#&client_secret=#client_secret}}{{#&callback=#callback}}',
+        feed_urls :{
+            search: 'https://api.foursquare.com/v2/venues/search?query={{query}}{{#&ll=#latlog}}&limit=20{{#&client_id=#client_id}}{{#&client_secret=#client_secret}}{{#&callback=#callback}}'
+        },
         fetch_url : function(service,query,callback){
             if (navigator.geolocation){
                 var options = this
@@ -1050,7 +1106,9 @@
         interval : 5000,
         methods : ['search'],
         api_key : '',
-        feed_url : 'https://www.googleapis.com/plus/v1/activities?query={{query}}&language=en&orderBy=best&maxResults=20&pp=1&key={{api_key}}{{#&callback=#callback}}',
+        feed_urls : {
+            search: 'https://www.googleapis.com/plus/v1/activities?query={{query}}&language=en&orderBy=best&maxResults=20&pp=1&key={{api_key}}{{#&callback=#callback}}'
+        },
         parse : function(data, query, callback) {
             if (!this.items_seen){
                 this.items_seen = {}
