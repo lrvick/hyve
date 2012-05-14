@@ -46,13 +46,11 @@
         // use services that contain proper method
         services = []
         check_services = custom_services || Object.keys(hyve.feeds);
-        console.log(check_services)
         check_services.forEach(function(service){
             if (method in oc(hyve.feeds[service.toLowerCase()].methods)){
                services.push(service.toLowerCase())
            }
         })
-        console.log(services);
 
         services.forEach(function(service){
             // set the orig_url to the services feed_url for this method
@@ -950,7 +948,6 @@
             }
         },
         parse : function(data,query,callback){
-            console.log('data = '  + data);
             if (!this.items_seen){
                 this.items_seen = {}
             }
