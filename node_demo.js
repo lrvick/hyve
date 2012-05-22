@@ -11,6 +11,10 @@ console.log('Starting Stream')
 // hyve.friends.stream(callback, [services])
 // hyve.search.stream(query, callback, [services])
 
-hyve.search.stream('android', function(data){
-    console.log(data.service +' : '+ data.text)
-}, ['twitter',])
+//hyve.search.stream('android', function(data){
+//    console.log(data.service +' : '+ data.text)
+//}, ['twitter',])
+
+hyve.friends.stream(function(data) {
+  console.log(data.service + ' : ' + data.text)
+},['twitter',])

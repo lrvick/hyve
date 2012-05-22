@@ -38,25 +38,28 @@
     }
 
     // Pulls data from several streams and handles all with given callback
-    function stream(query, callback, custom_services, method) {
+    function stream(query, callback, custom_services) {
         callback = callback || function(){}
         services = custom_services || Object.keys(hyve.feeds)
-        method = method || 'search'
+        method = hyve.method
 
         // use services that contain proper method
         services = []
-        check_services = custom_services || Object.keys(hyve.feeds);
+        check_services = custom_services || Object.keys(hyve.feeds)
         check_services.forEach(function(service){
             if (method in oc(hyve.feeds[service.toLowerCase()].methods)){
                services.push(service.toLowerCase())
            }
         })
 
+        console.log('services' + services)
         services.forEach(function(service){
             // set the orig_url to the services feed_url for this method
             if (!hyve.feeds[service].orig_url){
                 hyve.feeds[service].orig_url = hyve.feeds[service].feed_urls[method]
             }
+
+            console.log(service)
 
             var options = hyve.feeds[service]
 
@@ -65,8 +68,8 @@
 
                 if (hyve.feeds[service].format_url){
                     feed_url = format( options.feed_urls[method]
-                                     , hyve.feeds[service].format_url(query)
-                                     )
+                                    , hyve.feeds[service].format_url(query)
+                                    )
                 } else {
                     feed_url = format( options.feed_urls[method]
                                     ,{ query:  query
@@ -74,11 +77,14 @@
                                     ,  result_type: options.result_type
                                     ,  api_key: options.api_key
                                     ,  auth_user: options.auth_user
+                                    ,  auth_signature: options.auth_signature
                                     })
                 }
 
+                console.log('feed url = ' + feed_url);
+
                 if (hyve.feeds[service].fetch_url){
-                    hyve.feeds[service].fetch_url(service,query,callback)
+                    hyve.feeds[service].fetch_url(service, query, callback)
                 } else {
                     fetch(feed_url, service, query, callback)
                 }
@@ -93,12 +99,14 @@
     // specific wrappers for stream functionality
     var friends = {
         stream: function(callback, custom_services) {
-            return stream('', callback, custom_services, 'friends');
+            hyve.method = 'friends';
+            return stream('', callback, custom_services);
         }
     }
     var search = {
         stream: function(query, callback, custom_services) {
-            return stream(query, callback, custom_services, 'search');
+            hyve.method = 'search';
+            return stream(query, callback, custom_services);
         }
     }
 
@@ -364,7 +372,11 @@
         // Higher-order function to process the fetched data
         function pass(service, query, callback, item) {
             return function(data) {
-                hyve.feeds[service].parse(data, query, callback, item)
+                if (hyve.method in hyve.feeds[service].parsers) {
+                    hyve.feeds[service].parsers[hyve.method](data, query, callback, item)
+                } else {
+                    throw('method not defined in plugins parsers')
+                }
             }
         }
 
@@ -374,23 +386,24 @@
 
 
     // Exports data to the outside world
-    hyve.friends = friends;
-    hyve.search = search;
-    hyve.stop = stop;
-    hyve.process = process;
-    hyve.format = format;
-    hyve.fetch = fetch;
-    hyve.recall = recall;
-    hyve.recall_enable = false;
-    hyve.replenish = replenish;
-    hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]};
+    hyve.friends = friends
+    hyve.search = search
+    hyve.method = '' // set by the calling stream
+    hyve.stop = stop
+    hyve.process = process
+    hyve.format = format
+    hyve.fetch = fetch
+    hyve.recall = recall
+    hyve.recall_enable = false
+    hyve.replenish = replenish
+    hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]}
     hyve.queue_enable = false; // enables queuing; no queue by default
-    hyve.dequeue = dequeue;
-    hyve.items_seen = [];
-    hyve.items_seen_size = 5000; // length of buffer before rolling begins
-    hyve.callbacks = [];
-    hyve.links = {};
-    hyve.feeds = {};
+    hyve.dequeue = dequeue
+    hyve.items_seen = []
+    hyve.items_seen_size = 5000 // length of buffer before rolling begins
+    hyve.callbacks = []
+    hyve.links = {}
+    hyve.feeds = {}
 
 
     //Various service specific modules
@@ -466,12 +479,16 @@
     }
 
     hyve.feeds['twitter'] = {
-        methods : ['search'],
+        methods : ['search', 'friends'],
         interval : 2000,
         result_type : 'mixed', // mixed, recent, popular
         since_ids : {},
+        auth_signature : '',
         feed_urls : {
-            search: 'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True&{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}'        },
+            search: 'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True&{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}',
+            friends: 'https://api.twitter.com/1/statuses/home_timeline.json?oauth_consumer_key=YugYUa9Ozpu2fR2TWXzaPg&oauth_nonce=4594047dc21733431fb2e5274e546f8f&oauth_signature=d2RObZfTwaLj%2BTd9gOXMA0Q1W5k%3D&oauth_signature_method=HMAC-SHA1&oauth_timestamp=1337642048&oauth_token=18140583-CT2FxzBON7nQjsTS9RbrEgfrv7XDlqPGbUgUmY2rZ&oauth_version=1.0{{#&callback=#callback}}'
+
+        },
         format_url : function(query){
             var since_arg
             if (this.since_ids[query]){
@@ -479,56 +496,64 @@
             }
             return { query: query,
                      result_type: this.result_type,
-                     since: since_arg }
+                     since: since_arg,
+                     //auth_signature: this.auth_signature
+            }
         },
-        parse : function(data,query,callback){
-            if (data.refresh_url){
-                this.since_ids[query] = data.refresh_url.replace(/\?since_id=([0-9]+).*/ig, "$1")
-            }
-            if (!this.items_seen){
-                this.items_seen = {}
-            }
-            if (data.results){
-                data.results.forEach(function(item){
-                    if (!this.items_seen[item.id_str.toString()]){
-                        this.items_seen[item.id_str.toString()] = true
-                        var links = []
-                        if (item.entities.urls) {
-                            item.entities.urls.forEach(function(url){
-                                if(url.expanded_url){
-                                    links.push(url.expanded_url)
-                                } else {
-                                    links.push("http://"+url.url)
-                                }
-                            })
+        parsers : {
+            search :function(data,query,callback){
+                if (data.refresh_url){
+                    this.since_ids[query] = data.refresh_url.replace(/\?since_id=([0-9]+).*/ig, "$1")
+                }
+                if (!this.items_seen){
+                    this.items_seen = {}
+                }
+                if (data.results){
+                    data.results.forEach(function(item){
+                        if (!this.items_seen[item.id_str.toString()]){
+                            this.items_seen[item.id_str.toString()] = true
+                            var links = []
+                            if (item.entities.urls) {
+                                item.entities.urls.forEach(function(url){
+                                    if(url.expanded_url){
+                                        links.push(url.expanded_url)
+                                    } else {
+                                        links.push("http://"+url.url)
+                                    }
+                                })
+                            }
+                            var weight = 0
+                            if (item.metadata.result_type == 'popular'){
+                                weight = 1
+                            }
+                            if (item.metadata.recent_retweets){
+                                weight = weight + item.metadata.recent_retweets
+                            }
+                            hyve.process({
+                                'service' : 'twitter',
+                                'type' : 'text',
+                                'query' : query,
+                                'user' : {
+                                    'id' : item.from_user_id_str,
+                                    'avatar' : item.profile_image_url,
+                                    'profile' : "http://twitter.com/"+item.from_user
+                                },
+                                'id' : item.id_str,
+                                'date' : item.created_at,
+                                'text' : item.text,
+                                'links' : links,
+                                'source' : 'http://twitter.com/'+
+                                           item.from_user+
+                                           '/status/'+item.id,
+                                'weight' : weight
+                            },callback)
                         }
-                        var weight = 0
-                        if (item.metadata.result_type == 'popular'){
-                            weight = 1
-                        }
-                        if (item.metadata.recent_retweets){
-                            weight = weight + item.metadata.recent_retweets
-                        }
-                        hyve.process({
-                            'service' : 'twitter',
-                            'type' : 'text',
-                            'query' : query,
-                            'user' : {
-                                'id' : item.from_user_id_str,
-                                'avatar' : item.profile_image_url,
-                                'profile' : "http://twitter.com/"+item.from_user
-                            },
-                            'id' : item.id_str,
-                            'date' : item.created_at,
-                            'text' : item.text,
-                            'links' : links,
-                            'source' : 'http://twitter.com/'+
-                                       item.from_user+
-                                       '/status/'+item.id,
-                            'weight' : weight
-                        },callback)
-                    }
-                },this)
+                    },this)
+                }
+            },
+
+            friends : function(data,query,callback) {
+                console.log(data);
             }
         }
     }
