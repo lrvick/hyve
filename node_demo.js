@@ -15,6 +15,8 @@ console.log('Starting Stream')
 //    console.log(data.service +' : '+ data.text)
 //}, ['twitter',])
 
+hyve.feeds.youtube.auth_user = '' // set for friends
+
 hyve.friends.stream(function(data) {
   console.log(data.service + ' : ' + data.text)
-},['twitter',])
+},['youtube',])

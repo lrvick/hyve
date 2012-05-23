@@ -52,14 +52,11 @@
            }
         })
 
-        console.log('services' + services)
         services.forEach(function(service){
             // set the orig_url to the services feed_url for this method
             if (!hyve.feeds[service].orig_url){
                 hyve.feeds[service].orig_url = hyve.feeds[service].feed_urls[method]
             }
-
-            console.log(service)
 
             var options = hyve.feeds[service]
 
@@ -80,8 +77,6 @@
                                     ,  auth_signature: options.auth_signature
                                     })
                 }
-
-                console.log('feed url = ' + feed_url);
 
                 if (hyve.feeds[service].fetch_url){
                     hyve.feeds[service].fetch_url(service, query, callback)
@@ -372,10 +367,16 @@
         // Higher-order function to process the fetched data
         function pass(service, query, callback, item) {
             return function(data) {
-                if (hyve.method in hyve.feeds[service].parsers) {
-                    hyve.feeds[service].parsers[hyve.method](data, query, callback, item)
+                // if service supports multiple parsers use that or fallback to
+                // parse
+                if (hyve.feeds[service].parsers) {
+                    if (hyve.method in hyve.feeds[service].parsers) {
+                        hyve.feeds[service].parsers[hyve.method](data, query, callback, item)
+                    } else {
+                        throw('method not defined in plugins parsers')
+                    }
                 } else {
-                    throw('method not defined in plugins parsers')
+                    hyve.feeds[service].parse(data, query, callback, item)
                 }
             }
         }
@@ -486,8 +487,7 @@
         auth_signature : '',
         feed_urls : {
             search: 'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True&{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}',
-            friends: 'https://api.twitter.com/1/statuses/home_timeline.json?oauth_consumer_key=YugYUa9Ozpu2fR2TWXzaPg&oauth_nonce=4594047dc21733431fb2e5274e546f8f&oauth_signature=d2RObZfTwaLj%2BTd9gOXMA0Q1W5k%3D&oauth_signature_method=HMAC-SHA1&oauth_timestamp=1337642048&oauth_token=18140583-CT2FxzBON7nQjsTS9RbrEgfrv7XDlqPGbUgUmY2rZ&oauth_version=1.0{{#&callback=#callback}}'
-
+            friends: 'https://api.twitter.com/1/statuses/home_timeline.json?{{ auth_signature }}' + '{{#&callback=#callback}}{{ since }}'
         },
         format_url : function(query){
             var since_arg
@@ -497,7 +497,7 @@
             return { query: query,
                      result_type: this.result_type,
                      since: since_arg,
-                     //auth_signature: this.auth_signature
+                     auth_signature: this.auth_signature
             }
         },
         parsers : {
@@ -553,7 +553,34 @@
             },
 
             friends : function(data,query,callback) {
-                console.log(data);
+                if (data) {
+                    if (!this.items_seen) this.items_seen = {}
+
+                    data.forEach(function(item)  {
+
+                        id = item.id_str
+
+                        if (!this.items_seen[id]) {
+                           this.items_seen[id] = true
+
+                            hyve.process({
+                                'service': 'twitter',
+                                'type': 'text',
+                                'query': query,
+                                'user' : {
+                                    'id': item.user.id_str,
+                                    'avatar': item.profile_image_url,
+                                    'profile':  "http://twitter.com/" + item.user.screen_name
+                                },
+                                'id': id,
+                                'date': item.created_at,
+                                'text': item.text,
+                                'source': "http://twitter.com/" + item.user.screen_name + "/status/" + id,
+                                'weight': item.retweet_count
+                            }, callback)
+                        }
+                    }, this);
+                }
             }
         }
     }
