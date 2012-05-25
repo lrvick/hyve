@@ -484,12 +484,12 @@
         interval : 2000,
         result_type : 'mixed', // mixed, recent, popular
         since_ids : {},
-        oauth_consumer_key : 'key',
-        oauth_nonce  : 'nonce',
-        oauth_signature : 'sig',
+        oauth_consumer_key : '',
+        oauth_nonce  : '',
+        oauth_signature : '',
         oauth_signature_method : 'HMAC-SHA1',
-        oauth_timestamp : 'time',
-        oauth_token : 'token',
+        oauth_timestamp : '',
+        oauth_token : '',
         oauth_version : '1.0',
         feed_urls : {
             search: 'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True&{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}',
