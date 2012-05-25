@@ -19,4 +19,4 @@ hyve.feeds.youtube.auth_user = '' // set for friends
 
 hyve.friends.stream(function(data) {
   console.log(data.service + ' : ' + data.text)
-},['youtube',])
+},['facebook',])
