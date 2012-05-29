@@ -77,6 +77,7 @@
                                     ,  auth_signature: options.auth_signature
                                     })
                 }
+                console.log('feed url = '  + feed_url)
 
                 if (hyve.feeds[service].fetch_url){
                     hyve.feeds[service].fetch_url(service, query, callback)
@@ -94,14 +95,14 @@
     // specific wrappers for stream functionality
     var friends = {
         stream: function(callback, custom_services) {
-            hyve.method = 'friends';
-            return stream('', callback, custom_services);
+            hyve.method = 'friends'
+            return stream('', callback, custom_services)
         }
     }
     var search = {
         stream: function(query, callback, custom_services) {
-            hyve.method = 'search';
-            return stream(query, callback, custom_services);
+            hyve.method = 'search'
+            return stream(query, callback, custom_services)
         }
     }
 
@@ -245,67 +246,67 @@
 
     // similiar to java's hashCode function (32bit)
     function string_hash(s) {
-        var hash = 0;
+        var hash = 0
         if (s.length === 0) {
-            return hash;
+            return hash
         }
         for (i = 0 ; i < s.length ; i ++ ) {
-            chr  = s.charCodeAt(i);
-            hash = ((hash << 5) - hash) + chr;
-            hash = hash & hash;
+            chr  = s.charCodeAt(i)
+            hash = ((hash << 5) - hash) + chr
+            hash = hash & hash
         }
-        return hash;
+        return hash
     }
 
     function processable(item) {
         if (item.text) {
-            var hash = string_hash(item.text);
+            var hash = string_hash(item.text)
 
             if (hash) {
                 if (hyve.items_seen.indexOf(hash) > -1) {
-                    return false;
+                    return false
                 } else {
                     // if list length limit is reached pop the last item and push to the top
                     if (hyve.items_seen.length > hyve.items_seen_size) {
-                        hyve.items_seen.shift();
+                        hyve.items_seen.shift()
                     }
-                    hyve.items_seen.push(hash);
+                    hyve.items_seen.push(hash)
 
                     // if hash isn't seen process item
-                    return true;
+                    return true
                 }
             }
         }
         // if no hash do not process
-        return false;
+        return false
     }
 
     // Manually re-classify items as needed, check for dupes, send to callback
-    function process(item,callback){
+    function process(item, callback){
         if (item.date != parseInt(item.date,10)){
             var date_obj = new Date(item.date)
             item.date = date_obj.getTime()/1000
         }
 
         items = [item];
-        item.links = item.links || [];
-        if (item.links.length > 0){
-            items = claim(item,callback);
+        item.links = item.links || []
+        if (item.links.length > 0) {
+            items = claim(item,callback)
         }
         if (items){
             items.forEach(function(item){
                 // check if item is processable, i.e not a dupe
                 if (processable(item)) {
                     if (hyve.queue_enable){
-                        enqueue(item);
+                        enqueue(item)
                     }
                     try {
-                        callback(item);
+                        callback(item)
                     } catch(e) {
-                        console.error('process:', e.message, item.service, item.id, item);
+                        console.error('process:', e.message, item.service, item.id, item)
                     }
                 }
-            });
+            })
         }
     }
 
@@ -492,8 +493,8 @@
         oauth_token : '',
         oauth_version : '1.0',
         feed_urls : {
-            search: 'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True&{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}',
-            friends: 'https://api.twitter.com/1/statuses/home_timeline.json?{{ key }}{{ nonce }}{{ signature }}{{ signature_method }}{{ timestamp }}{{ token }}{{ version }}' + '{{#&callback=#callback}}{{ since }}'
+            search: 'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}',
+            friends: 'https://api.twitter.com/1/statuses/home_timeline.json?{{ key }}{{ nonce }}{{ signature }}{{ signature_method }}{{ timestamp }}{{ token }}{{ version }}{{#&callback=#callback}}{{ since }}'
         },
         format_url : function(query){
             var since_arg
@@ -514,9 +515,9 @@
             }
         },
         parsers : {
-            search :function(data,query,callback){
+            search : function(data, query, callback){
                 if (data.refresh_url){
-                    this.since_ids[query] = data.refresh_url.replace(/\?since_id=([0-9]+).*/ig, "$1")
+                    hyve.feeds.twitter.since_ids[query] = data.refresh_url.replace(/\?since_id=([0-9]+).*/ig, "$1")
                 }
                 if (!this.items_seen){
                     this.items_seen = {}
@@ -565,7 +566,7 @@
                 }
             },
 
-            friends : function(data,query,callback) {
+            friends : function(data, query, callback) {
                 if (data) {
                     if (!this.items_seen) this.items_seen = {}
 
