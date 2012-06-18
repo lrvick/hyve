@@ -347,17 +347,18 @@
         // Requires a URI using the Node.js request library
         function request(url, callback) {
             get(url, function(error, res, data) {
-                try {
+                //try {
                     callback(JSON.parse(data))
-                } catch(e){
-                    console.error('request: fetch failed - ',url, e)
-                    callback({ }, e)
-                }
+                //} catch(e){
+                //    console.error('request: fetch failed - ',url, e)
+                //    callback({ }, e)
+                //}
             })
         }
 
         // Abstracts fetching URIs.
         function fetch(url, service, query, callback, item) {
+            console.log('fetching url = ' + url)
             var fn = pass(service, query, callback, item)
             var cb = !get && get_callback()
             url    = format(url, { callback: cb })
@@ -543,6 +544,7 @@
                             if (item.metadata.recent_retweets){
                                 weight = weight + item.metadata.recent_retweets
                             }
+                            console.log('twitter weight = ' + weight)
                             hyve.process({
                                 'service' : 'twitter',
                                 'type' : 'text',
@@ -912,14 +914,18 @@
     }
 
     hyve.feeds['flickr'] = {
-        methods : ['search'],
+        methods : ['search', 'friends'],
         interval : 10000,
         result_type : 'date-posted-desc',  // date-posted-asc, date-posted-desc, date-taken-asc, date-taken-desc, interestingness-desc, interestingness-asc, relevance
-        api_key : '',
+        api_key : 'ff26d71d7ee96723ccefe1e51b023aa7',
+        auth_token: '72157630049408350-94bf55d6a9cfaf09',
+        api_sig: 'e22a93a331888a562d0a498827dcae47',
         url_suffix_auth : 'rest/?method=flickr.photos.search&',
         url_suffix_anon : 'feeds/photos_public.gne?',
         feed_urls : {
-            search: 'http://api.flickr.com/services/{{url_suffix}}&per_page=20&format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}'
+            search: 'http://api.flickr.com/services/{{url_suffix}}&per_page=20&format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}',
+            //friends: 'http://api.flickr.com/services/rest/?method=flickr.photos.getContactsPhotos&api_key={{ api_key }}extras=date_upload,date_taken,owner_name,geo,tags,views&format=json&auth_token={{ auth_token }}&api_sig={{ api_sig }}&callback=callback'
+            friends : 'http://api.flickr.com/services/rest/?method=flickr.photos.getContactsPhotos&api_key=ff26d71d7ee96723ccefe1e51b023aa7&extras=date_upload%2Cdate_taken%2Cowner_name%2Cviews%2Cgeo%2Ctags&format=json&auth_token=72157630049408350-94bf55d6a9cfaf09&api_sig=e22a93a331888a562d0a498827dcae47'
         },
         format_url : function(query){
             var url_suffix
@@ -928,64 +934,85 @@
             } else {
                 url_suffix = this.url_suffix_anon
             }
-            return { query: query,
-                     url_suffix: url_suffix,
-                     result_type: this.result_type,
-                     api_key: this.api_key }
+            return {   query: query
+                     , url_suffix: url_suffix
+                     , result_type: this.result_type
+                     , api_key: this.api_key
+                     , auth_token: this.auth_token
+                     , api_sig: this.api_sig
+            }
         },
-        parse : function(data,query,callback){
-            if (!this.items_seen){
-                this.items_seen = {}
-            }
-            var items
-            if (this.api_key){
-                items = data.photos.photo
-            } else {
-                items = data.items
-            }
-            items && items.forEach(function(item){
-                var id, thumbnail, source_img, userid, username, source
-                if (this.api_key){
-                    id = item.id
-                    if (item.url_m){
-                        thumbnail = item.url_m
-                        source_img = item.url_m.replace('.jpg','_b.jpg')
-                    }
-                    username = item.ownername
-                    userid = item.owner
+        parsers : {
+
+            search: function(data, query, callback){
+
+                var api_key = hyve.feeds.flickr.api_key
+
+                if (!this.items_seen){
+                    this.items_seen = {}
+                }
+                var items
+                if (api_key){
+                    items = data.photos.photo
                 } else {
-                    id = item.media.m
-                    thumbnail = item.media.m
-                    source_img = item.media.m.replace('_m','_b')
-                    source = item.media.m.replace('_m','_b')
-                    username = item.author
-                    userid = item.author_id
+                    items = data.items
                 }
-                var weight = 0
-                if (item.views){
-                    weight = item.views
+                items && items.forEach(function(item){
+                    var id, thumbnail, source_img, userid, username, source
+                    if (api_key){
+                        id = item.id
+                        if (item.url_m){
+                            thumbnail = item.url_m
+                            source_img = item.url_m.replace('.jpg','_b.jpg')
+                        }
+                        username = item.ownername
+                        userid = item.owner
+                    } else {
+                        id = item.media.m
+                        thumbnail = item.media.m
+                        source_img = item.media.m.replace('_m','_b')
+                        source = item.media.m.replace('_m','_b')
+                        username = item.author
+                        userid = item.author_id
+                    }
+                    var weight = 0
+                    if (item.views){
+                        weight = item.views
+                    }
+                    if (!this.items_seen[id]){
+                        this.items_seen[id] = true
+                        hyve.process({
+                            'service' : 'flickr',
+                            'type' : 'image',
+                            'query' : query,
+                            'user' : {
+                                'id' : userid,
+                                'name' : username,
+                                'avatar' : ''
+                            },
+                            'id' : id,
+                            'date' : item.dateupload,
+                            'text' : item.title,
+                            'source' : item.link,
+                            'source_img' : source_img,
+                            'thumbnail': thumbnail,
+                            'weight' : weight
+                        },callback)
+                    }
+                }, this)
+            },
+
+            friends: function(data, query, callback) {
+                 if (!this.items_seen){
+                    this.items_seen = {}
                 }
-                if (!this.items_seen[id]){
-                    this.items_seen[id] = true
-                    hyve.process({
-                        'service' : 'flickr',
-                        'type' : 'image',
-                        'query' : query,
-                        'user' : {
-                            'id' : userid,
-                            'name' : username,
-                            'avatar' : ''
-                        },
-                        'id' : id,
-                        'date' : item.dateupload,
-                        'text' : item.title,
-                        'source' : item.link,
-                        'source_img' : source_img,
-                        'thumbnail': thumbnail,
-                        'weight' : weight
-                    },callback)
-                }
-            }, this)
+                console.log(data)
+            
+                var items = data.photos
+
+                console.log(items)
+            
+            }
         }
     }
 
