@@ -77,7 +77,6 @@
                                     ,  auth_signature: options.auth_signature
                                     })
                 }
-                console.log('feed url = '  + feed_url)
 
                 if (hyve.feeds[service].fetch_url){
                     hyve.feeds[service].fetch_url(service, query, callback)
@@ -347,18 +346,17 @@
         // Requires a URI using the Node.js request library
         function request(url, callback) {
             get(url, function(error, res, data) {
-                //try {
+                try {
                     callback(JSON.parse(data))
-                //} catch(e){
-                //    console.error('request: fetch failed - ',url, e)
-                //    callback({ }, e)
-                //}
+                } catch(e){
+                    console.error('request: fetch failed - ',url, e)
+                    callback({ }, e)
+                }
             })
         }
 
         // Abstracts fetching URIs.
         function fetch(url, service, query, callback, item) {
-            console.log('fetching url = ' + url)
             var fn = pass(service, query, callback, item)
             var cb = !get && get_callback()
             url    = format(url, { callback: cb })
@@ -544,7 +542,7 @@
                             if (item.metadata.recent_retweets){
                                 weight = weight + item.metadata.recent_retweets
                             }
-                            console.log('twitter weight = ' + weight)
+
                             hyve.process({
                                 'service' : 'twitter',
                                 'type' : 'text',
@@ -917,15 +915,14 @@
         methods : ['search', 'friends'],
         interval : 10000,
         result_type : 'date-posted-desc',  // date-posted-asc, date-posted-desc, date-taken-asc, date-taken-desc, interestingness-desc, interestingness-asc, relevance
-        api_key : 'ff26d71d7ee96723ccefe1e51b023aa7',
-        auth_token: '72157630049408350-94bf55d6a9cfaf09',
-        api_sig: 'e22a93a331888a562d0a498827dcae47',
+        api_key: '',
+        auth_token: '',
+        api_sig: '',
         url_suffix_auth : 'rest/?method=flickr.photos.search&',
         url_suffix_anon : 'feeds/photos_public.gne?',
         feed_urls : {
             search: 'http://api.flickr.com/services/{{url_suffix}}&per_page=20&format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}',
-            //friends: 'http://api.flickr.com/services/rest/?method=flickr.photos.getContactsPhotos&api_key={{ api_key }}extras=date_upload,date_taken,owner_name,geo,tags,views&format=json&auth_token={{ auth_token }}&api_sig={{ api_sig }}&callback=callback'
-            friends : 'http://api.flickr.com/services/rest/?method=flickr.photos.getContactsPhotos&api_key=ff26d71d7ee96723ccefe1e51b023aa7&extras=date_upload%2Cdate_taken%2Cowner_name%2Cviews%2Cgeo%2Ctags&format=json&auth_token=72157630049408350-94bf55d6a9cfaf09&api_sig=e22a93a331888a562d0a498827dcae47'
+            friends: 'http://api.flickr.com/services/rest/?method=flickr.photos.getContactsPhotos&api_key={{ api_key }}&extras=date_upload%2Cdate_taken%2Cowner_name%2Cgeo%2Ctags%2Cviews%2Curl_m%2Curl_t&format=json&nojsoncallback=1&auth_token={{ auth_token }}&api_sig={{ api_sig }}{{#&jsoncallback=#callback}}'
         },
         format_url : function(query){
             var url_suffix
@@ -1006,12 +1003,33 @@
                  if (!this.items_seen){
                     this.items_seen = {}
                 }
-                console.log(data)
-            
-                var items = data.photos
+                var items = data.photos.photo
+                items.forEach(function(item) {
+                    if (!this.items_seen[item.id]) {
+                        this.items_seen[item.id] = true
 
-                console.log(items)
-            
+                        source_url = 'http://flickr.com/photos/'+item.owner+'/'+ item.id
+                        source_img = 'http://farm'+ item.farm + '.staticflickr.com/' + item.server + '/' + item.id + '_' + item.secret + '.jpg'
+
+                        hyve.process({
+                            'service' : 'flickr',
+                            'type' : 'image',
+                            'query' : query,
+                            'user' : {
+                                'id' : item.owner,
+                                'name' : item.username,
+                                'avatar' : ''
+                            },
+                            'id' : item.id,
+                            'date' : item.dateupload,
+                            'text' : item.title,
+                            'source' : source_url,
+                            'source_img' : source_img,
+                            'thumbnail': item.url_t,
+                            'weight' : item.views
+                        }, callback)
+                    }
+                }, this)
             }
         }
     }
