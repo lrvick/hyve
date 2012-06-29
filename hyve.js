@@ -91,6 +91,9 @@
         })
     }
 
+    function popular(keyword) {
+    }
+
     // specific wrappers for stream functionality
     var friends = {
         stream: function(callback, custom_services) {
@@ -387,6 +390,7 @@
 
 
     // Exports data to the outside world
+    hyve.popular = popular
     hyve.friends = friends
     hyve.search = search
     hyve.method = '' // set by the calling stream
@@ -669,6 +673,13 @@
                         if (item.link){
                             links = [item.link]
                         }
+
+                        if (item.likes) {
+                            weight = item.likes.count
+                        } else {
+                            weight =1
+                        }
+
                         hyve.process({
                             'service' : 'facebook',
                             'type' : 'text',
@@ -685,7 +696,7 @@
                             'date' : item.created_time,
                             'text' : item.message,
                             'source' : 'http://facebook.com/'+item.from.id,
-                            'weight' : 1
+                            'weight' : weight
                         },callback)
                     }
                 },this)
