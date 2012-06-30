@@ -3,6 +3,7 @@
     <head>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
         <script src="../src/hyve.core.js" type="text/javascript"></script>
+        <script src="../src/hyve.facebook.js" type="text/javascript"></script>
         <script src="../src/hyve.twitter.js" type="text/javascript"></script>
         <script type="text/javascript">
             $(document).ready(function() {
@@ -19,7 +20,7 @@
                           data.text  +
                           '</p>'
                         ));
-                    });
+                    },['twitter','facebook']);
                 });
             });
         </script>

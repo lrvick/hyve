@@ -1,19 +1,6 @@
 (function(root) {
 
-    /* BEGIN nasty block that I want to find a way to avoid */
-    var hyve
-
-    if (typeof exports != 'undefined'){
-        if (Object.keys(exports).length == 0 && require){
-            hyve = require('../src/hyve.core.js')
-        } else {
-            hyve = exports
-        }
-    } else {
-        hyve = root.hyve
-    }
-    /* END nasty block that I want to find a way to avoid */
-
+    var hyve = (typeof require == 'function') ? require('../src/hyve.core.js') : root.hyve
 
     hyve.feeds.twitter = {
         methods : ['search', 'friends'],
