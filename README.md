@@ -26,13 +26,22 @@
 
 ## Requirements ##
 
-For running Hyve in Node.js, you'll need the [request][] library. You can grab
-it from [npm][]:
+For running Hyve in Node.js, you'll need the [request][] library.
+
+You can grab it from [npm][]:
 
     $ npm install request
 
+For running Hyve in the browser in production you'll need to compile it with
+the [grunt][] library.
+
+You can grab it from [npm][]:
+
+    $ npm -g install grunt
+
 [request]: https://github.com/mikeal/request
-[npm]:     http://npmjs.org
+[grunt]: https://github.com/cowboy/grunt
+[npm]: http://npmjs.org
 
 
 ## Usage / Installation ##
@@ -44,6 +53,41 @@ Arguments:
 hyve.stream(search_terms,callback_function,optional_service_list)
 
 ```
+
+### Browser - Production ###
+
+For production use in a browser you should use a single-file minified version
+of hyve. You can use grunt to compile.
+
+Then compile with:
+
+    $ grunt concat min
+
+You will then find a minified version of hyve at dist/hyve.min.js
+
+
+### Browser - Development ###
+
+During development you can simply source the files you intend to work with:
+
+```html
+<script type="text/javascript" src="hyve/src/hyve.core.js">
+<script type="text/javascript" src="hyve/src/hyve.twitter.js">
+<script type="text/javascript" src="hyve/src/hyve.facebook.js">
+```
+
+### Node.JS ###
+
+In Node.JS simply require hyve.core.js and any modules you need.
+
+```javascript
+var hyve = require('src/hyve.core.js')
+require('src/hyve.twitter.js')
+require('src/hyve.facebook.js')
+```
+
+
+## Examples ##
 
 Simple echo of Twitter, Facebook, and Identica with pure JS:
 
@@ -61,7 +105,9 @@ Simple Node.js example to output data from all services:
 
 ```javascript
 
-var hyve = require('hyve')
+var hyve = require('src/hyve.core.js')
+require('src/hyve.twitter.js')
+require('src/hyve.facebook.js')
 
 hyve.stream('android', function(data){
     console.log(data.service +' : '+ data.text);
@@ -77,7 +123,7 @@ Basic live search engine with jQuery:
 <html>
     <head>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-        <script src="hyve.js" type="text/javascript"></script>
+        <script src="dist/hyve.min.js" type="text/javascript"></script>
         <script type="text/javascript">
             $(document).ready(function() {
                 $('#search').bind("click",function(){
@@ -99,6 +145,9 @@ Basic live search engine with jQuery:
 </html>
 
 ```
+
+You can find more examples in the demos directory.
+
 
 ## Notes ##
 
