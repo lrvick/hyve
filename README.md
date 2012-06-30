@@ -49,9 +49,7 @@ You can grab it from [npm][]:
 Arguments:
 
 ```javascript
-
-hyve.stream(search_terms,callback_function,optional_service_list)
-
+hyve.search.stream(search_terms,callback_function,optional_service_list)
 ```
 
 ### Browser - Production ###
@@ -86,25 +84,21 @@ require('src/hyve.twitter.js')
 require('src/hyve.facebook.js')
 ```
 
-
 ## Examples ##
 
 Simple echo of Twitter, Facebook, and Identica with pure JS:
 
 ```javascript
-
 var myFunction = function(data){console.log(' + data.service +' : '+ data.text  +')}
 var myQuery = 'android'
 var myServices = ['Twitter','Facebook','Identica']
 
-hyve.stream(myQuery,myFunction,myServices)
-
+hyve.search.stream(myQuery,myFunction,myServices)
 ```
 
 Simple Node.js example to output data from all services:
 
 ```javascript
-
 var hyve = require('src/hyve.core.js')
 require('src/hyve.twitter.js')
 require('src/hyve.facebook.js')
@@ -112,13 +106,11 @@ require('src/hyve.facebook.js')
 hyve.stream('android', function(data){
     console.log(data.service +' : '+ data.text);
 })
-
 ```
 
 Basic live search engine with jQuery:
 
 ```html
-
 <!DOCTYPE HTML>
 <html>
     <head>
@@ -128,7 +120,7 @@ Basic live search engine with jQuery:
             $(document).ready(function() {
                 $('#search').bind("click",function(){
                     query=$('#query').val();
-                    hyve.stream(query,function(data){
+                    hyve.search.stream(query,function(data){
                         $('#output').prepend($('<p>' + data.service +' : '+ data.text  +'</p>'))
                     });
                 });
@@ -143,7 +135,6 @@ Basic live search engine with jQuery:
         <div id="output"></div>
     </body>
 </html>
-
 ```
 
 You can find more examples in the demos directory.
