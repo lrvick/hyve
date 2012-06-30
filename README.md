@@ -55,9 +55,9 @@ hyve.search.stream(search_terms,callback_function,optional_service_list)
 ### Browser - Production ###
 
 For production use in a browser you should use a single-file minified version
-of hyve. You can use grunt to compile.
+of hyve.
 
-Then compile with:
+Compile using grunt:
 
     $ grunt concat min
 
