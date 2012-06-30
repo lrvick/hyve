@@ -1,8 +1,9 @@
 #!/usr/bin/node
 
-var hyve = require('./hyve.js')
+//var hyve = require('../dist/hyve.js')
 
-require('./plugins/twitter.js')
+var hyve = require('../src/hyve.core.js')
+require('../src/hyve.twitter.js')
 
 hyve.queue_enable = false
 hyve.recall_enable = false

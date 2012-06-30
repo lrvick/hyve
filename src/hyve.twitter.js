@@ -1,6 +1,21 @@
 (function(root) {
 
-    hyve.feeds['twitter'] = {
+    /* BEGIN nasty block that I want to find a way to avoid */
+    var hyve
+
+    if (typeof exports != 'undefined'){
+        if (Object.keys(exports).length == 0 && require){
+            hyve = require('../src/hyve.core.js')
+        } else {
+            hyve = exports
+        }
+    } else {
+        hyve = root.hyve
+    }
+    /* END nasty block that I want to find a way to avoid */
+
+
+    hyve.feeds.twitter = {
         methods : ['search', 'friends'],
         interval : 2000,
         result_type : 'mixed', // mixed, recent, popular
@@ -119,12 +134,5 @@
             }
         }
     }
-
-// Maintain node/browser compatibilty
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = hyve;
-} else {
-    root.hyve = hyve;
-}
 
 })(this)

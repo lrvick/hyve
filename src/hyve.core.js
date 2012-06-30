@@ -407,5 +407,11 @@
     hyve.links = {}
     hyve.feeds = {}
 
+    // Export hyve for node/browser compatibilty
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = hyve;
+    } else {
+        root.hyve = hyve;
+    }
 
 })(this)
