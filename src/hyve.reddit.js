@@ -22,7 +22,7 @@
             if (data.data.children[0]){
                 this.before = data.data.children[0].data.name
                 data.data.children.forEach(function(item){
-                    var weight = 0
+                    var weight = 1
                     if (item.data.score){
                         weight = item.data.score
                     }
