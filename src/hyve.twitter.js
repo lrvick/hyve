@@ -58,12 +58,9 @@
                                     }
                                 })
                             }
-                            var weight = 0
+                            var weight = 1
                             if (item.metadata.result_type == 'popular'){
-                                weight = 1
-                            }
-                            if (item.metadata.recent_retweets){
-                                weight = weight + item.metadata.recent_retweets
+                                weight = item.metadata.recent_retweets
                             }
 
                             hyve.process({
