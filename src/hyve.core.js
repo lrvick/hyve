@@ -53,6 +53,8 @@
            }
         })
 
+        if (services.length === 0) throw "cannot stream; services is empty"
+
         services.forEach(function(service){
             // set the orig_url to the services feed_url for this method
             if (!hyve.feeds[service].orig_url){
@@ -93,6 +95,10 @@
     }
 
     // specific wrappers for stream functionality
+    var popular = function(query, callback, custom_services)  {
+        hyve.method = 'popular'
+        return stream(query, callback, custom_services)
+    }
     var friends = {
         stream: function(callback, custom_services) {
             hyve.method = 'friends'
@@ -388,6 +394,7 @@
 
 
     // Exports data to the outside world
+    hyve.popular = popular
     hyve.friends = friends
     hyve.search = search
     hyve.method = '' // set by the calling stream
