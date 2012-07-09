@@ -87,10 +87,10 @@
                     fetch(feed_url, service, query, callback)
                 }
             }
-            runFetch()
             hyve.feeds[service].lock = setInterval(function(){
                 runFetch()
             }, options.interval)
+            runFetch()
         })
     }
 
