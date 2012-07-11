@@ -17,6 +17,7 @@
                 data.items.forEach(function(item){
                     if (!this.items_seen[item.id]){
                         this.items_seen[item.id] = true
+                        var weight = 1
                         item.type = 'text'
                         if (!item.title){
                             item.type = 'link'
