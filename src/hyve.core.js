@@ -161,7 +161,7 @@
     }
 
     // Gives some feeds the chance to claim an item as its own, then returns
-    // list of claimed/reformatted items, or the unaltered origional
+    // list of claimed/reformatted items, or the unaltered original
     function claim(item,callback){
         var new_items = []
         var services = Object.keys(hyve.feeds)
