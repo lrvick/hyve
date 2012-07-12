@@ -5,7 +5,7 @@
 
 ## About ##
 
-  Hyve (pronounced: "hive") is a javascript library aiming to be a general
+  Hyve (pronounced: "hive") is a Javascript library aiming to be a general
   solution for streaming the latest data from multiple social media networks,
   for any given topic, and abstracting all of them into one simple API.
 
@@ -13,7 +13,7 @@
 ## Current Features ##
 
   * Plays nice with all major JS frameworks (jQuery, Mootools etc.)
-  * Can run any javascript function of your choice against each posting retrieved.
+  * Can run any Javascript function of your choice against each posting retrieved.
   * Outputs all data in a normalized format - [USMF][]
   * Supports searching Facebook, Twitter, Identica, Foursquare, Flickr, Picasa, Wordpress, Youtube, Reddit, Digg, and Delicious
   * Indirectly supports Imgur and Vimeo by catching links shared via other services.
@@ -51,7 +51,7 @@ You can grab it from [npm][]:
 
 #### Data Queueing  ####
 
-When this is enabled all incomding data will be placed into a FIFO queue by so
+When this is enabled all incoming data will be placed into a FIFO queue by so
 your application can dequeue items as appropriate.
 
 Queued items will be stored in 'hyve.queue' as an array:
@@ -74,14 +74,14 @@ Dequeue Queued Item:
 
 var item = hyve.queue.text[0]
 
-hyve.dequeue(item);
+hyve.dequeue(item)
 
 ```
 
 #### Data Recall (Browser Only) ####
 
-If enabled in conjunction with hyve.queue hyve will use cache all queued items
-using HTML5 localStorage. Hyve will recall any chached if the page containing
+If enabled in conjunction with hyve.queue hyve will cache all queued items
+using HTML5 localStorage. Hyve will recall any cached items if the page containing
 hyve is closed and restarted.
 
 
@@ -103,7 +103,7 @@ hyve.feeds.foursquare.client_id = 'your_application_client_id'
 hyve.feeds.foursquare.client_secret = 'your_application_client_secret'
 ```
 
-Flickr will work without authentication, however 'views' is not returned
+Flickr will work without authentication, however the 'views' statistic is not returned
 without auth. Without 'views' the 'weight' metric will be set to 0.
 
 To get 'views' in Flickr you must specify an API key like so:
@@ -112,7 +112,7 @@ To get 'views' in Flickr you must specify an API key like so:
 hyve.feeds.flickr.api_key = 'your_api_key',
 ```
 
-To utilize bitly url un-shortening you must supply a login and api_key:
+To utilize bitly url un-shortening you must supply a username and API key:
 
 ```javascript
 hyve.feeds.bitly.login = 'your_username'
@@ -121,7 +121,7 @@ hyve.feeds.bitly.api_key = 'your_api_key'
 
 #### OAuth Token definitions  ####
 
-In order to functions of hyve that require OAuth authentication (like the
+In order to use functions of hyve that require OAuth authentication (like the
 friends/subcriptions stream) you must supply OAuth tokens for each involved
 service. Obtaining OAuth tokens is outside the scope of hyve.
 
@@ -195,7 +195,7 @@ During development you can simply source the files you intend to work with:
 
 #### Node.JS ####
 
-In Node.JS simply require hyve.core.js and any modules you need.
+In Node.js simply require hyve.core.js and any modules you need.
 
 ```javascript
 var hyve = require('src/hyve.core.js')
