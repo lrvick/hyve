@@ -5,6 +5,7 @@
     hyve.feeds['facebook'] = {
         methods : ['search', 'friends'],
         interval : 3000,
+        interval_friends : 10000,
         access_token : '',
         feed_urls : {
             search: 'https://graph.facebook.com/search?q={{query}}&limit=25&type=post{{since}}{{#&callback=#callback}}',

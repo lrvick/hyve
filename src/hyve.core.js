@@ -81,14 +81,26 @@
 
                 if (hyve.feeds[service].fetch_url){
                     hyve.feeds[service].fetch_url(service, query, callback)
+                } else if (hyve.feeds[service].oauth_version == '1.0'
+                            && hyve.method == 'friends') {
+                    feed_url = feed_url.substr(0,feed_url.indexOf("?"));
+                    hyve.fetch_proxy(feed_url,service)
                 } else {
                     fetch(feed_url, service, query, callback)
                 }
             }
             runFetch()
+
+            var interval = options.interval
+            if (hyve.method == 'friends' && options.interval_friends){
+                if (options.interval_friends){
+                    interval = options.interval_friends
+                }
+            }
+
             hyve.feeds[service].lock = setInterval(function(){
                 runFetch()
-            }, options.interval)
+            }, interval)
         })
     }
 
@@ -386,6 +398,10 @@
         return fetch
     }()
 
+    // A default echo function used when no real request proxy function exists
+    function fetch_proxy(feed_url,service){
+        console.log('hyve_request_proxy',feed_url,service)
+    }
 
     // Exports data to the outside world
     hyve.friends = friends
@@ -395,6 +411,7 @@
     hyve.process = process
     hyve.format = format
     hyve.fetch = fetch
+    hyve.fetch_proxy = fetch_proxy // override with your own proxy function
     hyve.recall = recall
     hyve.recall_enable = false
     hyve.replenish = replenish
