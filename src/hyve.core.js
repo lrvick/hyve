@@ -73,6 +73,7 @@
                                     ,{ query:  query
                                     ,  url_suffix: options.url_suffix
                                     ,  result_type: options.result_type
+                                    ,  access_token: options.access_token
                                     ,  api_key: options.api_key
                                     ,  auth_user: options.auth_user
                                     ,  auth_signature: options.auth_signature
