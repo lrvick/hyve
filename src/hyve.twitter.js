@@ -3,7 +3,7 @@
     var hyve = (typeof require == 'function') ? require('../src/hyve.core.js') : root.hyve
 
     hyve.feeds.twitter = {
-        methods : ['search', 'friends'],
+        methods : ['search', 'friends', 'popular'],
         interval : 2000,
         result_type : 'mixed', // mixed, recent, popular
         since_ids : {},
@@ -16,7 +16,8 @@
         oauth_version : '1.0',
         feed_urls : {
             search: 'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}',
-            friends: 'https://api.twitter.com/1/statuses/home_timeline.json?{{ key }}{{ nonce }}{{ signature }}{{ signature_method }}{{ timestamp }}{{ token }}{{ version }}{{#&callback=#callback}}{{ since }}'
+            friends: 'https://api.twitter.com/1/statuses/home_timeline.json?{{ key }}{{ nonce }}{{ signature }}{{ signature_method }}{{ timestamp }}{{ token }}{{ version }}{{#&callback=#callback}}{{ since }}',
+            popular: 'http://search.twitter.com/search.json?q={{query}}&lang=en&rpp=25&include_entities=True{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}',
         },
         format_url : function(query){
             var since_arg
@@ -94,6 +95,11 @@
 
                         id = item.id_str
 
+                        var weight = 1
+                        if (item.retweet_count) {
+                            weight = item.retweet_count
+                        }
+
                         if (!this.items_seen[id]) {
                            this.items_seen[id] = true
 
@@ -110,13 +116,69 @@
                                 'date': item.created_at,
                                 'text': item.text,
                                 'source': "http://twitter.com/" + item.user.screen_name + "/status/" + id,
-                                'weight': item.retweet_count
+                                'weight': weight
                             }, callback)
                         }
                     }, this);
                 }
+            },
+
+            popular: function(data, query, callback) {
+
+                var sorted_items = []
+
+                if (data.results) {
+                    data.results.forEach(function(item) {
+                        var weight = 1
+                        var recent_retweets = item.metadata.recent_retweets
+                        if (recent_retweets > 1) {
+                            weight = recent_retweets
+                        }
+                        item.weight = weight
+                        sorted_items.push(item)
+
+                        item.links = []
+                        if (item.entities.urls) {
+                            item.entities.urls.forEach(function(url){
+                                if(url.expanded_url){
+                                    item.links.push(url.expanded_url)
+                                } else {
+                                    item.links.push("http://"+url.url)
+                                }
+                            })
+                        }
+
+                    })
+
+                    sorted_items.sort(function(a, b) {
+                        return b.weight - a.weight
+                    })
+
+                    sorted_items.forEach(function(item) {
+                        hyve.process({
+                            'service' : 'twitter',
+                            'type' : 'text',
+                            'query' : query,
+                            'user' : {
+                                'id' : item.from_user_id_str,
+                                'avatar' : item.profile_image_url,
+                                'profile' : "http://twitter.com/"+item.from_user
+                            },
+                            'id' : item.id_str,
+                            'date' : item.created_at,
+                            'text' : item.text,
+                            'links' : item.links,
+                            'source' : 'http://twitter.com/'+
+                                       item.from_user+
+                                       '/status/'+item.id,
+                            'weight' : item.weight
+                        }, callback)
+                    }, this)
+
+                    //popular is called once, clear interval
+                    hyve.stop(['twitter'])
+                }
             }
         }
     }
-
 })(this)

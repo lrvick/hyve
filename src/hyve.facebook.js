@@ -105,7 +105,7 @@
                 },this)
 
                 // popular is only called once, stop clears interval
-                hyve.stop(['facebook']);
+                hyve.stop(['facebook'])
             }
         }
     }
