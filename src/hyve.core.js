@@ -75,7 +75,6 @@
     // Pulls data from several streams and handles all with given callback
     function stream(query, callback, custom_services) {
         callback = callback || function(){}
-        services = custom_services || Object.keys(hyve.feeds)
         method = hyve.method
 
         // use services that contain proper method
@@ -414,7 +413,7 @@
                     if (hyve.method in hyve.feeds[service].parsers) {
                         hyve.feeds[service].parsers[hyve.method](data, query, callback, item)
                     } else {
-                        throw('method not defined in plugins parsers')
+                        throw(hyve.method + ' method not defined in plugins parsers')
                     }
                 } else {
                     hyve.feeds[service].parse(data, query, callback, item)
