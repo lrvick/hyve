@@ -46,7 +46,7 @@
                                 user_name = ''
                             }
                         }
-                        var weight = 0
+                        var weight = 1
                         if (item.views){
                             weight = item.stats.userCount
                         }

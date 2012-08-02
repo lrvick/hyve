@@ -13,6 +13,40 @@
         }
     }
 
+    //ECMA-262 standard indexOf from Mozilla Developer Network
+    if (!Array.prototype.indexOf) {
+        Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
+            "use strict";
+            if (this == null) {
+                throw new TypeError();
+            }
+            var t = Object(this);
+            var len = t.length >>> 0;
+            if (len === 0) {
+                return -1;
+            }
+            var n = 0;
+            if (arguments.length > 0) {
+                n = Number(arguments[1]);
+                if (n != n) { // shortcut for verifying if it's NaN
+                    n = 0;
+                } else if (n != 0 && n != Infinity && n != -Infinity) {
+                    n = (n > 0 || -1) * Math.floor(Math.abs(n));
+                }
+            }
+            if (n >= len) {
+                return -1;
+            }
+            var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+            for (; k < len; k++) {
+                if (k in t && t[k] === searchElement) {
+                    return k;
+                }
+            }
+            return -1;
+        }
+    }
+
     // Converts an object to an array
     function oc(a){
        var obj = {}
@@ -41,7 +75,6 @@
     // Pulls data from several streams and handles all with given callback
     function stream(query, callback, custom_services) {
         callback = callback || function(){}
-        services = custom_services || Object.keys(hyve.feeds)
         method = hyve.method
 
         // use services that contain proper method
@@ -52,6 +85,8 @@
                services.push(service.toLowerCase())
            }
         })
+
+        if (services.length === 0) throw "cannot stream; services is empty"
 
         services.forEach(function(service){
             // set the orig_url to the services feed_url for this method
@@ -106,6 +141,10 @@
     }
 
     // specific wrappers for stream functionality
+    var popular = function(query, callback, custom_services)  {
+        hyve.method = 'popular'
+        return stream(query, callback, custom_services)
+    }
     var friends = {
         stream: function(callback, custom_services) {
             hyve.method = 'friends'
@@ -134,7 +173,7 @@
     }
 
     // Gives some feeds the chance to claim an item as its own, then returns
-    // list of claimed/reformatted items, or the unaltered origional
+    // list of claimed/reformatted items, or the unaltered original
     function claim(item,callback){
         var new_items = []
         var services = Object.keys(hyve.feeds)
@@ -387,7 +426,7 @@
                     if (hyve.method in hyve.feeds[service].parsers) {
                         hyve.feeds[service].parsers[hyve.method](data, query, callback, item)
                     } else {
-                        throw('method not defined in plugins parsers')
+                        throw(hyve.method + ' method not defined in plugins parsers')
                     }
                 } else {
                     hyve.feeds[service].parse(data, query, callback, item)
@@ -405,6 +444,7 @@
     }
 
     // Exports data to the outside world
+    hyve.popular = popular
     hyve.friends = friends
     hyve.search = search
     hyve.method = '' // set by the calling stream
