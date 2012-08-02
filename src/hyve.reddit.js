@@ -3,11 +3,11 @@
     var hyve = (typeof require == 'function') ? require('../src/hyve.core.js') : root.hyve
 
     hyve.feeds['reddit'] = {
-        methods : ['search'],
+        methods : ['search', 'popular'],
         interval : 5000,
-        result_type : 'relevance', // new, relevence, top
-        feed_urls : {
-            search: 'http://www.reddit.com/search.json?q={{query}}{{#&sort=#result_type}}{{#&jsonp=#callback}}{{before}}'
+        feed_urls : { // sort types: relevance, top, new
+            search: 'http://www.reddit.com/search.json?q={{query}}&sort=relevance{{#&jsonp=#callback}}{{before}}',
+            popular: 'http://www.reddit.com/search.json?q={{query}}&sort=top{{#&jsonp=#callback}}{{before}}'
         },
         format_url : function(query){
             var before_arg = ''
@@ -16,7 +16,7 @@
             }
             return { query: query,
                      before: before_arg,
-                     result_type: this.result_type}
+                   }
         },
         parse : function(data,query,callback){
             if (data.data.children[0]){
@@ -56,6 +56,9 @@
                         'weight' : weight
                     },callback)
                 })
+                if (hyve.method == 'popular') {
+                    hyve.stop(['reddit'])
+                }
             }
         }
     }
