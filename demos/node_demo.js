@@ -12,7 +12,7 @@ console.log('Starting Stream')
 // examples:
 // hyve.friends.stream(callback, [services])
 // hyve.search.stream(query, callback, [services])
-// hyve.popular(query, callback, [services])
+// hyve.search.popular(query, callback, [services])
 
 hyve.search.stream('android', function(data){
     console.log(data.service +' : '+ data.text)

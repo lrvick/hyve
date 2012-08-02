@@ -140,11 +140,7 @@
         })
     }
 
-    // specific wrappers for stream functionality
-    var popular = function(query, callback, custom_services)  {
-        hyve.method = 'popular'
-        return stream(query, callback, custom_services)
-    }
+    // specific external wrappers for search/stream functionality
     var friends = {
         stream: function(callback, custom_services) {
             hyve.method = 'friends'
@@ -154,6 +150,10 @@
     var search = {
         stream: function(query, callback, custom_services) {
             hyve.method = 'search'
+            return stream(query, callback, custom_services)
+        },
+        popular: function(query, callback, custom_services) {
+            hyve.method = 'popular'
             return stream(query, callback, custom_services)
         }
     }
@@ -444,7 +444,6 @@
     }
 
     // Exports data to the outside world
-    hyve.popular = popular
     hyve.friends = friends
     hyve.search = search
     hyve.method = '' // set by the calling stream

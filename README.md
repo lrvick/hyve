@@ -154,19 +154,19 @@ hyve.search.stream(search_terms,callback_function,optional_service_list)
 #### Public recently popular search ####
 
 ```javascript
-hyve.search.popular(search_terms,callback_function,optional_service_list)
+hyve.search.popular(search_term,callback_function,optional_service_list)
 ```
 
 #### Personal friends/subscriptions stream ####
 
 ```javascript
-hyve.friends.stream(search_terms,callback_function,optional_service_list)
+hyve.friends.stream(callback_function,optional_service_list)
 ```
 
 #### Stop running streams ####
 
 ```javascript
-hyve.stop();
+hyve.stop()
 ```
 
 ### Deployment ###
