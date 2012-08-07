@@ -8,10 +8,14 @@
         result_type : 'videos',  //  videos,top_rated, most_popular, standard_feeds/most_recent, most_dicsussed, most_responded, recently_featured, on_the_web
         feed_suffix : '', // '', standardfeeds/ - if '' result_type must be 'videos'
         access_token : '',
+        token_timeout: 60000,
         feed_urls : {
             search: 'http://gdata.youtube.com/feeds/api/{{feed_suffix}}{{result_type}}?q={{query}}&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
             friends: 'https://gdata.youtube.com/feeds/api/users/default/newsubscriptionvideos?v=2&alt=jsonc&access_token={{ access_token }}{{#&callback=#callback}}'
             popular: 'http://gdata.youtube.com/feeds/api/{{feed_suffix}}{{result_type}}?q={{query}}&time=today&orderby=viewCount&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
+        },
+        token_update : function(){
+            console.log('The Google API token has expired. \nOverride hyve.feeds.youtube.token_update with your own handler to obtain a new token');
         },
         claim : function(link,item){
             if (link.search(/youtu.be|youtube.com.*v=/i) != -1){

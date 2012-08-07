@@ -96,10 +96,18 @@
 
             var options = hyve.feeds[service]
 
+            if (options.token_update){
+                options.token_update()
+                options.token_update_lock = setInterval(function(){
+                    options.token_update
+                },options.token_timeout)
+            }
+
+
             var runFetch = function(){
                 var feed_url
 
-                if (hyve.feeds[service].format_url){
+                if (options.format_url){
                     feed_url = format( options.feed_urls[method]
                                     , hyve.feeds[service].format_url(query)
                                     )
@@ -168,6 +176,9 @@
                     hyve.feeds[service].feed_url = hyve.feeds[service].orig_url
                 }
                 clearInterval(hyve.feeds[service].lock)
+            }
+            if (hyve.feeds[service].token_update_lock){
+                clearInterval(hyve.feeds[service].token_update_lock)
             }
         })
     }
