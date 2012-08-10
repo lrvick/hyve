@@ -98,9 +98,9 @@
 
             if (options.token_update){
                 options.token_update()
-                options.token_update_lock = setInterval(function(){
-                    options.token_update
-                },options.token_timeout)
+                options.token_update_lock = setInterval( options.token_update
+                                                       , options.token_timeout
+                                                       )
             }
 
 
