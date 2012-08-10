@@ -18,7 +18,7 @@
         feed_urls : {
             search: 'http://search.twitter.com/search.json?q={{query}}&lang=en&include_entities=True{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}',
             friends: 'https://api.twitter.com/1/statuses/home_timeline.json?{{ key }}{{ nonce }}{{ signature }}{{ signature_method }}{{ timestamp }}{{ token }}{{ version }}{{#&callback=#callback}}{{ since }}',
-            popular: 'http://search.twitter.com/search.json?q={{query}}&lang=en&rpp=25&include_entities=True{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}',
+            popular: 'http://search.twitter.com/search.json?q={{query}}&lang=en&rpp=25&include_entities=True{{#&result_type=#result_type}}{{since}}{{#&callback=#callback}}'
         },
         format_url : function(query){
             var since_arg

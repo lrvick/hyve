@@ -11,8 +11,8 @@
         token_timeout: 60000,
         feed_urls : {
             search: 'http://gdata.youtube.com/feeds/api/{{feed_suffix}}{{result_type}}?q={{query}}&time=today&orderby=published&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
-            friends: 'https://gdata.youtube.com/feeds/api/users/default/newsubscriptionvideos?v=2&alt=jsonc&access_token={{ access_token }}{{#&callback=#callback}}'
-            popular: 'http://gdata.youtube.com/feeds/api/{{feed_suffix}}{{result_type}}?q={{query}}&time=today&orderby=viewCount&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}',
+            friends: 'https://gdata.youtube.com/feeds/api/users/default/newsubscriptionvideos?v=2&alt=jsonc&access_token={{ access_token }}{{#&callback=#callback}}',
+            popular: 'http://gdata.youtube.com/feeds/api/{{feed_suffix}}{{result_type}}?q={{query}}&time=today&orderby=viewCount&format=5&max-results=20&v=2&alt=jsonc{{#&callback=#callback}}'
         },
         token_update : function(){
             console.log('The Google API token has expired. \nOverride hyve.feeds.youtube.token_update with your own handler to obtain a new token');
@@ -40,10 +40,6 @@
             search: function(data,query,callback){
                 if (!this.items_seen){
                     this.items_seen = {}
-                }
-
-                if (hyve.method == 'friends') {
-                    if (!hyve.feeds.youtube.auth_user) throw "auth_user not defined for youtube friends method"
                 }
 
                 items = data.data.items

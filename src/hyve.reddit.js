@@ -15,7 +15,7 @@
                 before_arg = '&before='+this.before
             }
             return { query: query,
-                     before: before_arg,
+                     before: before_arg
                    }
         },
         parse : function(data,query,callback){
