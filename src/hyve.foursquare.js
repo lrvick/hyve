@@ -1,6 +1,6 @@
 (function(root) {
 
-    var hyve = (typeof require == 'function') ? require('../src/hyve.core.js') : root.hyve
+    var hyve = (typeof require == 'function' && !(typeof define == 'function' && define.amd)) ? require('../src/hyve.core.js') : root.hyve
 
     hyve.feeds['foursquare'] = {
         methods : ['search'],

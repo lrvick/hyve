@@ -1,7 +1,7 @@
 (function(root) {
 
-    var hyve = typeof exports != 'undefined'?  exports : root.hyve = { }
-    var get = typeof require == 'function' && require('request')
+    var hyve = (typeof require == 'function' && !(typeof define == 'function' && define.amd)) ? require('../src/hyve.core.js') : root.hyve = {}
+    var get = typeof require == 'function' && !(typeof define == 'function' && define.amd) && require('request')
 
     // ECMA-262 compatible Array#forEach polyfills
     Array.prototype.forEach = Array.prototype.forEach || function(fn, ctx) {
