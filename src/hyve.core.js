@@ -152,9 +152,11 @@
     var friends = {
         stream: function(callback, custom_services) {
             hyve.method = 'friends'
+            hyve.callback = callback;
             return stream('', callback, custom_services)
         }
     }
+
     var search = {
         stream: function(query, callback, custom_services) {
             hyve.method = 'search'
@@ -456,6 +458,7 @@
     hyve.friends = friends
     hyve.search = search
     hyve.method = '' // set by the calling stream
+    hyve.callback = '' // set by the calling stream
     hyve.stop = stop
     hyve.process = process
     hyve.format = format
