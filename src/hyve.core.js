@@ -96,7 +96,7 @@
 
             var options = hyve.feeds[service]
 
-            if (options.token_update){
+            if (options.token_update && hyve.method == 'friends'){
                 options.token_update()
                 options.token_update_lock = setInterval( options.token_update
                                                        , options.token_timeout
