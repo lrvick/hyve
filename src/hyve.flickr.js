@@ -9,11 +9,12 @@
         api_key: '',
         auth_token: '',
         api_sig: '',
+        oauth_version: '1.0',
         url_suffix_auth : 'rest/?method=flickr.photos.search&',
         url_suffix_anon : 'feeds/photos_public.gne?',
         feed_urls : {
             search: 'http://api.flickr.com/services/{{url_suffix}}&per_page=20&format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}',
-            friends: 'http://api.flickr.com/services/rest/?method=flickr.photos.getContactsPhotos&api_key={{ api_key }}&extras=date_upload%2Cdate_taken%2Cowner_name%2Cgeo%2Ctags%2Cviews%2Curl_m%2Curl_t&format=json&nojsoncallback=1&auth_token={{ auth_token }}&api_sig={{ api_sig }}{{#&jsoncallback=#callback}}'
+            friends: 'http://api.flickr.com/services/rest/?method=flickr.photos.getContactsPhotos&extras=date_upload%2Cdate_taken%2Cowner_name%2Cgeo%2Ctags%2Cviews%2Curl_m%2Curl_t&format=json&nojsoncallback=1'
         },
         format_url : function(query){
             var url_suffix
@@ -94,7 +95,6 @@
                  if (!this.items_seen){
                     this.items_seen = {}
                 }
-                console.log('flickr',data)
                 if (data.photos != undefined){
                     var items = data.photos.photo
                     items.forEach(function(item) {

@@ -127,7 +127,6 @@
                     hyve.feeds[service].fetch_url(service, query, callback)
                 } else if (hyve.feeds[service].oauth_version == '1.0'
                             && hyve.method == 'friends') {
-                    feed_url = feed_url.substr(0,feed_url.indexOf("?"));
                     hyve.fetch_proxy(feed_url,service)
                 } else {
                     fetch(feed_url, service, query, callback)
