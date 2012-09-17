@@ -94,33 +94,36 @@
                  if (!this.items_seen){
                     this.items_seen = {}
                 }
-                var items = data.photos.photo
-                items.forEach(function(item) {
-                    if (!this.items_seen[item.id]) {
-                        this.items_seen[item.id] = true
+                console.log('flickr',data)
+                if (data.photos != undefined){
+                    var items = data.photos.photo
+                    items.forEach(function(item) {
+                        if (!this.items_seen[item.id]) {
+                            this.items_seen[item.id] = true
 
-                        source_url = 'http://flickr.com/photos/'+item.owner+'/'+ item.id
-                        source_img = 'http://farm'+ item.farm + '.staticflickr.com/' + item.server + '/' + item.id + '_' + item.secret + '.jpg'
+                            source_url = 'http://flickr.com/photos/'+item.owner+'/'+ item.id
+                            source_img = 'http://farm'+ item.farm + '.staticflickr.com/' + item.server + '/' + item.id + '_' + item.secret + '.jpg'
 
-                        hyve.process({
-                            'service' : 'flickr',
-                            'type' : 'image',
-                            'query' : query,
-                            'user' : {
-                                'id' : item.owner,
-                                'name' : item.username,
-                                'avatar' : ''
-                            },
-                            'id' : item.id,
-                            'date' : item.dateupload,
-                            'text' : item.title,
-                            'source' : source_url,
-                            'source_img' : source_img,
-                            'thumbnail': item.url_t,
-                            'weight' : item.views
-                        }, callback)
-                    }
-                }, this)
+                            hyve.process({
+                                'service' : 'flickr',
+                                'type' : 'image',
+                                'query' : query,
+                                'user' : {
+                                    'id' : item.owner,
+                                    'name' : item.username,
+                                    'avatar' : ''
+                                },
+                                'id' : item.id,
+                                'date' : item.dateupload,
+                                'text' : item.title,
+                                'source' : source_url,
+                                'source_img' : source_img,
+                                'thumbnail': item.url_t,
+                                'weight' : item.views
+                            }, callback)
+                        }
+                    }, this)
+                }
             }
         }
     }
