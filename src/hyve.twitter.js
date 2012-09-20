@@ -111,7 +111,7 @@
                                 'user' : {
                                     'id': item.user.id_str,
                                     'name': item.user.name,
-                                    'avatar': item.profile_image_url,
+                                    'avatar': item.user.profile_image_url,
                                     'profile':  "http://twitter.com/" + item.user.screen_name
                                 },
                                 'id': id,
