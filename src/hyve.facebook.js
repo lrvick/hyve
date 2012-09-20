@@ -60,6 +60,9 @@
                 },this)
             }
             },
+            friends: function(data, query, callback) {
+                return hyve.feeds.facebook.parsers.search(data, query, callback)
+            },
             popular: function(data, query, callback) {
 
                 var sorted_items = []
