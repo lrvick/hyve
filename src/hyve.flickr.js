@@ -13,8 +13,8 @@
         url_suffix_auth : 'rest/?method=flickr.photos.search&',
         url_suffix_anon : 'feeds/photos_public.gne?',
         feed_urls : {
-            search: 'http://api.flickr.com/services/{{url_suffix}}&per_page=20&format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}',
-            friends: 'http://api.flickr.com/services/rest/?method=flickr.photos.getContactsPhotos&api_key={{ api_key }}&format=json&auth_token={{ auth_token }}&api_sig={{ api_sig }}&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b,url_t&format=json&nojsoncallback=1&count=25'
+            search: 'http://api.flickr.com/services/{{url_suffix}}&per_page=20&format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b,icon_server{{#&api_key=#api_key}}',
+            friends: 'http://api.flickr.com/services/rest/?method=flickr.photos.getContactsPhotos&api_key={{ api_key }}&format=json&auth_token={{ auth_token }}&api_sig={{ api_sig }}&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b,url_t,icon_server&format=json&nojsoncallback=1&count=25'
         },
         format_url : function(query){
             var url_suffix
@@ -70,6 +70,9 @@
                     }
                     if (!this.items_seen[id]){
                         this.items_seen[id] = true
+
+                        user_avatar = 'http://farm'+ item.iconfarm + '.staticflickr.com/' + item.iconserver + '/buddyicons/' + item.owner + '.jpg'
+
                         hyve.process({
                             'service' : 'flickr',
                             'type' : 'image',
@@ -77,7 +80,7 @@
                             'user' : {
                                 'id' : userid,
                                 'name' : username,
-                                'avatar' : ''
+                                'avatar' : user_avatar
                             },
                             'id' : id,
                             'date' : item.dateupload,
@@ -101,8 +104,9 @@
                         if (!this.items_seen[item.id]) {
                             this.items_seen[item.id] = true
 
-                            source_url = 'http://flickr.com/photos/'+item.owner+'/'+ item.id
-                            source_img = 'http://farm'+ item.farm + '.staticflickr.com/' + item.server + '/' + item.id + '_' + item.secret + '.jpg'
+                            source_url  = 'http://flickr.com/photos/'+item.owner+'/'+ item.id
+                            source_img  = 'http://farm'+ item.farm + '.staticflickr.com/' + item.server + '/' + item.id + '_' + item.secret + '.jpg'
+                            user_avatar = 'http://farm'+ item.iconfarm + '.staticflickr.com/' + item.iconserver + '/buddyicons/' + item.owner + '.jpg'
 
                             hyve.process({
                                 'service' : 'flickr',
@@ -111,7 +115,7 @@
                                 'user' : {
                                     'id' : item.owner,
                                     'name' : item.username,
-                                    'avatar' : ''
+                                    'avatar' : user_avatar
                                 },
                                 'id' : item.id,
                                 'date' : item.dateupload,
