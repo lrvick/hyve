@@ -14,7 +14,7 @@
         url_suffix_anon : 'feeds/photos_public.gne?',
         feed_urls : {
             search: 'http://api.flickr.com/services/{{url_suffix}}&per_page=20&format=json{{#&sort=#result_type}}&tagmode=all&tags={{query}}{{#&jsoncallback=#callback}}&content_type=1&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b{{#&api_key=#api_key}}',
-            friends: 'http://api.flickr.com/services/rest/?method=flickr.photos.getContactsPhotos&api_key={{ api_key }}&format=json&auth_token={{ auth_token }}&api_sig={{ api_sig }}&format=json&nojsoncallback=1&count=25'
+            friends: 'http://api.flickr.com/services/rest/?method=flickr.photos.getContactsPhotos&api_key={{ api_key }}&format=json&auth_token={{ auth_token }}&api_sig={{ api_sig }}&extras=date_upload,date_taken,owner_name,geo,tags,views,url_m,url_b&format=json&nojsoncallback=1&count=25'
         },
         format_url : function(query){
             var url_suffix
@@ -92,7 +92,6 @@
             },
 
             friends: function(data, query, callback) {
-                console.log('inside friends')
                  if (!this.items_seen){
                     this.items_seen = {}
                 }
