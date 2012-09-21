@@ -118,7 +118,7 @@
                                 'text' : item.title,
                                 'source' : source_url,
                                 'source_img' : source_img,
-                                'thumbnail': item.url_t,
+                                'thumbnail': item.url_m,
                                 'weight' : item.views
                             }, callback)
                         }
