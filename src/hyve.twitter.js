@@ -71,6 +71,7 @@
                                 'query' : query,
                                 'user' : {
                                     'id' : item.from_user_id_str,
+                                    'name': item.from_user_name,
                                     'avatar' : item.profile_image_url,
                                     'profile' : "http://twitter.com/"+item.from_user
                                 },
