@@ -5,7 +5,7 @@
     hyve.feeds.twitter = {
         methods : ['search', 'friends', 'popular'],
         interval : 2000,
-        interval_friends : 10000,
+        interval_friends : 60000,
         result_type : 'mixed', // mixed, recent, popular
         since_ids : {},
         oauth_consumer_key : '',

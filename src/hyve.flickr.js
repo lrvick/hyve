@@ -5,6 +5,7 @@
     hyve.feeds['flickr'] = {
         methods : ['search', 'friends'],
         interval : 10000,
+        interval_friends : 60000,
         result_type : 'date-posted-desc',  // date-posted-asc, date-posted-desc, date-taken-asc, date-taken-desc, interestingness-desc, interestingness-asc, relevance
         api_key: '',
         auth_token: '',
