@@ -88,6 +88,8 @@
 
         if (services.length === 0) throw "cannot stream; services is empty"
 
+        hyve.stop()
+
         services.forEach(function(service){
             // set the orig_url to the services feed_url for this method
             if (!hyve.feeds[service].orig_url){
