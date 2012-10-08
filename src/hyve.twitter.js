@@ -61,8 +61,10 @@
                                 })
                             }
                             var weight = 1
+                            var likes = ''
                             if (item.metadata.result_type == 'popular'){
-                                weight = item.metadata.recent_retweets
+                                likes = item.metadata.recent_retweets
+                                weight = likes
                             }
 
                             hyve.process({
@@ -76,6 +78,7 @@
                                     'avatar' : item.profile_image_url,
                                     'profile' : "http://twitter.com/"+item.from_user
                                 },
+                                'likes' : likes,
                                 'id' : item.id_str,
                                 'date' : item.created_at,
                                 'text' : item.text,

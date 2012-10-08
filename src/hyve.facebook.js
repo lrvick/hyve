@@ -36,8 +36,10 @@
                                     links = [item.link]
                                 }
                                 var weight = 1
+                                var likes = ''
                                 if (item.likes) {
-                                    weight = item.likes.count
+                                    likes = item.likes.count
+                                    weight = likes
                                 }
                                 hyve.process({
                                     'service' : 'facebook',
@@ -55,6 +57,7 @@
                                     'date' : item.created_time,
                                     'text' : item.message,
                                     'source' : 'http://facebook.com/'+item.from.id,
+                                    'likes': likes,
                                     'weight' : weight
                                 },callback)
                             }
