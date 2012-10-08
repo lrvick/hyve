@@ -1,7 +1,12 @@
 (function(root) {
 
-    var hyve = (typeof require == 'function' && !(typeof define == 'function' && define.amd)) ? require('../src/hyve.core.js') : root.hyve = {}
-    var get = typeof require == 'function' && !(typeof define == 'function' && define.amd) && require('request')
+    var hyve = ( typeof require == 'function'
+               && !( typeof define == 'function' && define.amd )
+               ) ? require('../src/hyve.core.js') : root.hyve = {}
+
+    var get = typeof require == 'function'
+              && !(typeof define == 'function' && define.amd)
+              && require('request')
 
     // ECMA-262 compatible Array#forEach polyfills
     Array.prototype.forEach = Array.prototype.forEach || function(fn, ctx) {
@@ -16,34 +21,34 @@
     //ECMA-262 standard indexOf from Mozilla Developer Network
     if (!Array.prototype.indexOf) {
         Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
-            "use strict";
+            "use strict"
             if (this === null) {
-                throw new TypeError();
+                throw new TypeError()
             }
-            var t = Object(this);
-            var len = t.length >>> 0;
+            var t = Object(this)
+            var len = t.length >>> 0
             if (len === 0) {
-                return -1;
+                return -1
             }
-            var n = 0;
+            var n = 0
             if (arguments.length > 0) {
-                n = Number(arguments[1]);
+                n = Number(arguments[1])
                 if (isNaN(n)) { // shortcut for verifying if it's NaN
-                    n = 0;
+                    n = 0
                 } else if (n !== 0 && n !== Infinity && n !== -Infinity) {
-                    n = (n > 0 || -1) * Math.floor(Math.abs(n));
+                    n = (n > 0 || -1) * Math.floor(Math.abs(n))
                 }
             }
             if (n >= len) {
-                return -1;
+                return -1
             }
-            var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+            var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0)
             for (; k < len; k++) {
                 if (k in t && t[k] === searchElement) {
-                    return k;
+                    return k
                 }
             }
-            return -1;
+            return -1
         }
     }
 
@@ -93,7 +98,8 @@
         services.forEach(function(service){
             // set the orig_url to the services feed_url for this method
             if (!hyve.feeds[service].orig_url){
-                hyve.feeds[service].orig_url = hyve.feeds[service].feed_urls[method]
+                hyve.feeds[service].orig_url =
+                    hyve.feeds[service].feed_urls[method]
             }
 
             var options = hyve.feeds[service]
@@ -153,7 +159,7 @@
     var friends = {
         stream: function(callback, custom_services) {
             hyve.method = 'friends'
-            hyve.callback = callback;
+            hyve.callback = callback
             return stream('', callback, custom_services)
         }
     }
@@ -296,12 +302,13 @@
     // Reset queue and refill it with any previously stored data if any exists
     function replenish(query,types){
         if (hyve.recall_enable === true){
-            hyve.queue = { 'text':[]
-                         , 'link':[]
-                         , 'video':[]
-                         , 'image':[]
-                         , 'checkin':[]
-            }
+            hyve.queue =
+                { 'text':[]
+                , 'link':[]
+                , 'video':[]
+                , 'image':[]
+                , 'checkin':[]
+                }
             types = types || Object.keys(hyve.queue)
             types.forEach(function(type){
                 hyve.queue[type] = recall(type,query)
@@ -332,7 +339,8 @@
                 if (hyve.items_seen.indexOf(hash) > -1) {
                     return false
                 } else {
-                    // if list length limit is reached pop the last item and push to the top
+                    // if list length limit is reached pop the last item and
+                    // push to the top
                     if (hyve.items_seen.length > hyve.items_seen_size) {
                         hyve.items_seen.shift()
                     }
@@ -354,7 +362,7 @@
             item.date = date_obj.getTime()/1000
         }
 
-        items = [item];
+        items = [item]
         item.links = item.links || []
         if (item.links.length > 0) {
             items = claim(item,callback)
@@ -369,7 +377,13 @@
                     try {
                         callback(item)
                     } catch(e) {
-                        console.error('process:', e.message, item.service, item.id, item)
+                        console.error
+                            ( 'process:'
+                            , e.message
+                            , item.service
+                            , item.id
+                            , item
+                            )
                     }
                 }
             })
@@ -441,7 +455,12 @@
                 // parse
                 if (hyve.feeds[service].parsers) {
                     if (hyve.method in hyve.feeds[service].parsers) {
-                        hyve.feeds[service].parsers[hyve.method](data, query, callback, item)
+                        hyve.feeds[service].parsers[hyve.method]
+                            ( data
+                            , query
+                            , callback
+                            , item
+                            )
                     }
                 } else {
                     hyve.feeds[service].parse(data, query, callback, item)
@@ -483,9 +502,9 @@
 
     // Export hyve for node/browser compatibilty
     if (typeof module !== 'undefined' && module.exports) {
-        module.exports = hyve;
+        module.exports = hyve
     } else {
-        root.hyve = hyve;
+        root.hyve = hyve
     }
 
 })(this)
