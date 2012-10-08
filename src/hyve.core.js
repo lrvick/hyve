@@ -401,6 +401,9 @@
             s.type = 'text/javascript'
             s.async = true
             s.src = url
+            if (hyve.debug === true){
+                console.log('hyve: JSOP Request:',url)
+            }
             var wrap_callback = function(){
                 cleanup(s)
                 return callback.apply(this,arguments)
@@ -471,6 +474,7 @@
     hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]}
     hyve.queue_enable = false; // enables queuing; no queue by default
     hyve.dequeue = dequeue
+    hyve.debug = false
     hyve.items_seen = []
     hyve.items_seen_size = 5000 // length of buffer before rolling begins
     hyve.callbacks = []

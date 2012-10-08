@@ -25,40 +25,44 @@
         },
         parsers : {
             search: function(data, query, callback){
-            if (data.data.length > 0){
-                var date_obj = new Date(data.data[0].created_time)
-                hyve.feeds['facebook'].since = date_obj.getTime()/1000
-                data.data.forEach(function(item){
-                    if (item.message){
-                        var links = []
-                        if (item.link){
-                            links = [item.link]
-                        }
-                        var weight = 1
-                        if (item.likes) {
-                            weight = item.likes.count
-                        }
-                        hyve.process({
-                            'service' : 'facebook',
-                            'type' : 'text',
-                            'query' : query,
-                            'user' : {
-                                'id' : item.from.id,
-                                'name' : item.from.name,
-                                'avatar' : 'http://graph.facebook.com/'+
-                                           item.from.id+'/picture',
-                                'profile' : "http://facebook.com/"+item.from.id
-                            },
-                            'id' : item.id,
-                            'links': links,
-                            'date' : item.created_time,
-                            'text' : item.message,
-                            'source' : 'http://facebook.com/'+item.from.id,
-                            'weight' : weight
-                        },callback)
+                if (!data.error){
+                    if (data.data.length > 0){
+                        var date_obj = new Date(data.data[0].created_time)
+                        hyve.feeds['facebook'].since = date_obj.getTime()/1000
+                        data.data.forEach(function(item){
+                            if (item.message){
+                                var links = []
+                                if (item.link){
+                                    links = [item.link]
+                                }
+                                var weight = 1
+                                if (item.likes) {
+                                    weight = item.likes.count
+                                }
+                                hyve.process({
+                                    'service' : 'facebook',
+                                    'type' : 'text',
+                                    'query' : query,
+                                    'user' : {
+                                        'id' : item.from.id,
+                                        'name' : item.from.name,
+                                        'avatar' : 'http://graph.facebook.com/'+
+                                                   item.from.id+'/picture',
+                                        'profile' : "http://facebook.com/"+item.from.id
+                                    },
+                                    'id' : item.id,
+                                    'links': links,
+                                    'date' : item.created_time,
+                                    'text' : item.message,
+                                    'source' : 'http://facebook.com/'+item.from.id,
+                                    'weight' : weight
+                                },callback)
+                            }
+                        },this)
                     }
-                },this)
-            }
+                } else {
+                    console.error('facebook error',data.error.message,this.access_token)
+                }
             },
             friends: function(data, query, callback) {
                 return hyve.feeds.facebook.parsers.search(data, query, callback)
