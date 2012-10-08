@@ -89,6 +89,7 @@
                             'source' : item.link,
                             'source_img' : source_img,
                             'thumbnail': thumbnail,
+                            'views' : item.views,
                             'weight' : weight
                         },callback)
                     }
@@ -124,6 +125,7 @@
                                 'source' : source_url,
                                 'source_img' : source_img,
                                 'thumbnail': item.url_m,
+                                'views' : item.views,
                                 'weight' : item.views
                             }, callback)
                         }

@@ -53,6 +53,7 @@
                             var favorites = undefined
                             var comments = undefined
                             var rates = undefined
+                            var views = undefined
                             if (item.commentCount && item.commentCount > 0 ){
                                 comments = item.commentCount
                                 weight = weight+comments
@@ -61,9 +62,12 @@
                                 favorites = item.favoriteCount
                                 weight = weight+favorites
                             }
-                            if (item.ratingCount){
+                            if (item.ratingCount && item.ratingCount > 0){
                                 rates = item.ratingCount
                                 weight = weight+rates
+                            }
+                            if (item.viewCount && item.viewCount > 0){
+                                views = item.viewCount
                             }
 
                             hyve.process({
@@ -84,6 +88,7 @@
                                 'text' : item.title,
                                 'source' : 'http://youtu.be/'+ item.id,
                                 'thumbnail':'http://i.ytimg.com/vi/' + item.id + '/hqdefault.jpg',
+                                'views': views,
                                 'weight': weight
                             }, callback)
                         }
