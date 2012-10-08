@@ -23,14 +23,22 @@
                 this.before = data.data.children[0].data.name
                 data.data.children.forEach(function(item){
                     var weight = 1
+                    var comments = ''
+                    var likes = ''
+                    var dislikes = ''
                     if (item.data.score){
                         weight = item.data.score
                     }
                     if (item.data.ups){
-                        weight = weight + item.data.ups
+                        likes = item.data.ups
+                        weight = weight + likes
+                    }
+                    if (item.data.downs){
+                        dislikes = item.data.downs
                     }
                     if (item.data.num_comments){
-                        weight = weight + item.data.num_comments
+                        comments = item.data.num_comments
+                        weight = weight + comments
                     }
                     if (item.data.likes){
                         weight = weight + item.data.likes
@@ -47,6 +55,9 @@
                             'name' : item.data.author,
                             'avatar' : ''
                         },
+                        'likes' : likes,
+                        'dislikes' : dislikes,
+                        'comments' : comments,
                         'id' : item.data.id,
                         'date' : item.data.created_utc,
                         'text' : item.data.title,
