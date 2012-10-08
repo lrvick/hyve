@@ -47,12 +47,24 @@
                 if (items) {
                     items.forEach(function(item){
                         var weight = 1
-                        if (item.views) {
-                            weight = item.stats.userCount
-                        }
 
                         if (!this.items_seen[item.id]) {
                             this.items_seen[item.id] = true
+                            var favorites = undefined
+                            var comments = undefined
+                            var rates = undefined
+                            if (item.commentCount && item.commentCount > 0 ){
+                                comments = item.commentCount
+                                weight = weight+comments
+                            }
+                            if (item.favoriteCount && item.favoriteCount > 0 ){
+                                favorites = item.favoriteCount
+                                weight = weight+favorites
+                            }
+                            if (item.ratingCount){
+                                rates = item.ratingCount
+                                weight = weight+rates
+                            }
 
                             hyve.process({
                                 'service' : 'youtube',
@@ -66,10 +78,13 @@
                                 },
                                 'id' : item.id,
                                 'date' : item.uploaded,
+                                'comments': comments,
+                                'rates': rates,
+                                'favorites': favorites,
                                 'text' : item.title,
                                 'source' : 'http://youtu.be/'+ item.id,
                                 'thumbnail':'http://i.ytimg.com/vi/' + item.id + '/hqdefault.jpg',
-                                'weight' : weight
+                                'weight': weight
                             }, callback)
                         }
                     }, this)
