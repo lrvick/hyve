@@ -66,8 +66,10 @@
                         userid = item.author_id
                     }
                     var weight = 0
-                    if (item.views){
-                        weight = item.views
+                    var views = undefined
+                    if (item.views && item.views > 0){
+                        views = item.views
+                        weight = views
                     }
                     if (!this.items_seen[id]){
                         this.items_seen[id] = true
@@ -89,7 +91,7 @@
                             'source' : item.link,
                             'source_img' : source_img,
                             'thumbnail': thumbnail,
-                            'views' : item.views,
+                            'views' : views,
                             'weight' : weight
                         },callback)
                     }
@@ -110,6 +112,12 @@
                             source_img  = 'http://farm'+ item.farm + '.staticflickr.com/' + item.server + '/' + item.id + '_' + item.secret + '.jpg'
                             user_avatar = 'http://farm'+ item.iconfarm + '.staticflickr.com/' + item.iconserver + '/buddyicons/' + item.owner + '.jpg'
 
+                            var weight = 0
+                            var views = undefined
+                            if (item.views && item.views > 0){
+                                views = item.views
+                                weight = views
+                            }
                             hyve.process({
                                 'service' : 'flickr',
                                 'type' : 'image',
@@ -125,8 +133,8 @@
                                 'source' : source_url,
                                 'source_img' : source_img,
                                 'thumbnail': item.url_m,
-                                'views' : item.views,
-                                'weight' : item.views
+                                'views' : views,
+                                'weight' : weight
                             }, callback)
                         }
                     }, this)
