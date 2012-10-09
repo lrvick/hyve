@@ -33,9 +33,10 @@
 
                         var type = 'text'
                         var thumbnail = undefined
-                        if (item.picture) {
-                            thumbnail = item.picture
+                        if (item.type == 'photo') {
+                            thumbnail = item.picture.replace('_s','_n')
                             type = 'image'
+                            console.log('FB PICTURE',item)
                         }
 
                         var links = []
