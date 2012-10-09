@@ -30,38 +30,47 @@
                         var date_obj = new Date(data.data[0].created_time)
                         hyve.feeds['facebook'].since = date_obj.getTime()/1000
                         data.data.forEach(function(item){
-                            if (item.message){
-                                var links = []
-                                if (item.link){
-                                    links = [item.link]
-                                }
-                                var weight = 1
-                                var likes = ''
-                                if (item.likes) {
-                                    likes = item.likes.count
-                                    weight = likes
-                                }
-                                hyve.process({
-                                    'service' : 'facebook',
-                                    'type' : 'text',
-                                    'query' : query,
-                                    'user' : {
-                                        'id' : item.from.id,
-                                        'name' : item.from.name,
-                                        'avatar' : 'http://graph.facebook.com/'+
-                                                   item.from.id+'/picture',
-                                        'profile' : "http://facebook.com/"+item.from.id
-                                    },
-                                    'id' : item.id,
-                                    'links': links,
-                                    'date' : item.created_time,
-                                    'text' : item.message,
-                                    'source' : 'http://facebook.com/'+item.from.id,
-                                    'likes': likes,
-                                    'weight' : weight
-                                },callback)
-                            }
-                        },this)
+
+                        var type = 'text'
+                        var thumbnail = undefined
+                        if (item.picture) {
+                            thumbnail = item.picture
+                            type = 'image'
+                        }
+
+                        var links = []
+                        if (item.link){
+                            links = [item.link]
+                        }
+                        var weight = 1
+                        var likes = ''
+                        if (item.likes) {
+                            likes = item.likes.count
+                            weight = likes
+                        }
+
+                        hyve.process({
+                            'service' : 'facebook',
+                            'type' : type,
+                            'query' : query,
+                            'user' : {
+                                'id' : item.from.id,
+                                'name' : item.from.name,
+                                'avatar' : 'http://graph.facebook.com/'+
+                                           item.from.id+'/picture',
+                                'profile' : "http://facebook.com/"+item.from.id
+                            },
+                            'id' : item.id,
+                            'links': links,
+                            'date' : item.created_time,
+                            'text' : item.message,
+                            'thumbnail' : thumbnail,
+                            'source' : 'http://facebook.com/'+item.from.id,
+                            'likes': likes,
+                            'weight' : weight
+                        },callback)
+
+                    },this)
                     }
                 } else {
                     console.error('facebook error',data.error.message,this.access_token)
@@ -94,9 +103,17 @@
                         if (item.link){
                             links = [item.link]
                         }
+
+                        var type = 'text'
+                        var thumbnail = undefined
+                        if (item.picture) {
+                            thumbnail = item.picture
+                            type = 'image'
+                        }
+
                         hyve.process({
                             'service' : 'facebook',
-                            'type' : 'text',
+                            'type' : type,
                             'query' : query,
                             'user' : {
                                 'id' : item.from.id,
@@ -109,6 +126,7 @@
                             'links': links,
                             'date' : item.created_time,
                             'text' : item.message,
+                            'thumbnail': thumbnail,
                             'source' : 'http://facebook.com/'+item.from.id,
                             'weight' : item.weight
                            },callback)
