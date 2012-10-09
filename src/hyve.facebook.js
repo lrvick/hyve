@@ -36,7 +36,6 @@
                         if (item.type == 'photo') {
                             thumbnail = item.picture.replace('_s','_n')
                             type = 'image'
-                            console.log('FB PICTURE',item)
                         }
 
                         var links = []
