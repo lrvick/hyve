@@ -365,7 +365,10 @@
         items = [item]
         item.links = item.links || []
         if (item.links.length > 0) {
-            items = claim(item,callback)
+            claimed_items = claim(item,callback)
+            if (claimed_items){
+                items = claimed_items
+            }
         }
         if (items){
             items.forEach(function(item){
