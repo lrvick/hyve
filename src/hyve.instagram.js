@@ -26,8 +26,6 @@
                 if (data.data.length > 0){
                     data.data.forEach(function(item){
 
-                        console.log('instagram item',item)
-
                         hyve.process({
                             'service' : 'instagram',
                             'type' : 'image',
