@@ -26,6 +26,8 @@
                 if (data.data.length > 0){
                     data.data.forEach(function(item){
 
+                        console.log('instagram item',item)
+
                         hyve.process({
                             'service' : 'instagram',
                             'type' : 'image',
@@ -34,8 +36,7 @@
                                 'id' : item.user.id,
                                 'name' : item.user.username,
                                 'real_name' : item.user.full_name,
-                                'avatar' : item.user.profile_picture,
-                                'profile' : "http://facebook.com/"+item.from.id
+                                'avatar' : item.user.profile_picture
                             },
                             'id' : item.id,
                             'date' : item.created_time,
@@ -44,7 +45,7 @@
                             'comments' : item.comments.count,
                             'source' : item.link,
                             'likes' : item.likes.count,
-                            'weight' : weight
+                            'weight' : item.likes.count + item.comments.count
                         },callback)
 
                     },this)
