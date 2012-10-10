@@ -332,7 +332,7 @@
     }
 
     function processable(item) {
-        if (item.text) {
+        if (item.text && item.type != 'image') {
             var hash = string_hash(item.text)
 
             if (hash) {
@@ -350,6 +350,8 @@
                     return true
                 }
             }
+        } else {
+            return true
         }
         // if no hash do not process
         return false
