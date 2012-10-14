@@ -47,6 +47,12 @@
                     if (item.data.url.search(/reddit.com/i) == -1){
                         links = [item.data.url]
                     }
+                    var thumbnail = undefined
+                    if (  item.data.thumbnail
+                       && item.data.thumbnail != 'default'
+                       ){
+                        thumbnail == item.data.thumbnail
+                    }
                     hyve.process({
                         'service' : 'reddit',
                         'type' : 'link',
@@ -63,7 +69,7 @@
                         'text' : item.data.title,
                         'links'  : links,
                         'source' : item.data.url,
-                        'thumbnail': item.data.thumbnail,
+                        'thumbnail': thumbnail,
                         'weight' : weight
                     },callback)
                 })
