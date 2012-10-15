@@ -26,6 +26,10 @@
                 if (data.data.length > 0){
                     data.data.forEach(function(item){
 
+                        var text = undefined;
+
+                        if (item.caption) text = item.caption.text
+
                         hyve.process({
                             'service' : 'instagram',
                             'type' : 'image',
@@ -38,7 +42,7 @@
                             },
                             'id' : item.id,
                             'date' : item.created_time,
-                            'text' : item.caption.text,
+                            'text' : text,
                             'thumbnail' : item.images.standard_resolution.url,
                             'comments' : item.comments.count,
                             'source' : item.link,
