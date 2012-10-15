@@ -33,9 +33,19 @@
 
                         var type = 'text'
                         var thumbnail = undefined
+                        var text = undefined
                         if (item.type == 'photo') {
                             thumbnail = item.picture.replace('_s','_n')
+                            text = item.message
                             type = 'image'
+                        }
+
+                        if (item.message) {
+                            text = item.message
+                        } else if (item.description){
+                            text = item.description
+                        } else if (item.name){
+                            text = item.name
                         }
 
                         var links = []
@@ -63,7 +73,7 @@
                             'id' : item.id,
                             'links': links,
                             'date' : item.created_time,
-                            'text' : item.message,
+                            'text' : text,
                             'thumbnail' : thumbnail,
                             'source' : 'http://facebook.com/'+item.from.id,
                             'likes': likes,
