@@ -73,8 +73,8 @@
                                 'query' : query,
                                 'user' : {
                                     'id' : item.from_user_id_str,
-                                    'real_name': item.from_user,
-                                    'name': item.from_user_name,
+                                    'real_name': item.from_user_name,
+                                    'name': item.from_user,
                                     'avatar' : item.profile_image_url,
                                     'profile' : "http://twitter.com/"+item.from_user
                                 },
@@ -109,13 +109,16 @@
                         if (!this.items_seen[id]) {
                            this.items_seen[id] = true
 
+                            console.log('TWITTA',item)
+
                             hyve.process({
                                 'service': 'twitter',
                                 'type': 'text',
                                 'query': query,
                                 'user' : {
                                     'id': item.user.id_str,
-                                    'name': item.user.name,
+                                    'name': item.user.screen_name,
+                                    'real_name': item.user.name,
                                     'avatar': item.user.profile_image_url,
                                     'profile':  "http://twitter.com/" + item.user.screen_name
                                 },
