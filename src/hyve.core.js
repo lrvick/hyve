@@ -84,7 +84,10 @@
 
         // use services that contain proper method
         services = []
-        check_services = custom_services || Object.keys(hyve.feeds)
+        check_services =
+            custom_services || hyve.services || Object.keys(hyve.feeds)
+        hyve.services = check_services
+
         check_services.forEach(function(service){
             if (method in oc(hyve.feeds[service.toLowerCase()].methods)){
                services.push(service.toLowerCase())
@@ -92,6 +95,19 @@
         })
 
         if (services.length === 0) throw "cannot stream; services is empty"
+
+        if (hyve.sort_interval){
+            hyve.sort_interval_lock = setInterval(function(){
+                hyve.sort_queue.sort(function(a,b){
+                    return a['date'] - b['date']
+                })
+                hyve.sort_queue.forEach(function(item){
+                    callback(item)
+                    idx = hyve.sort_queue.indexOf(item)
+                    if (idx != -1) hyve.sort_queue.splice(idx, 1)
+                })
+            },hyve.sort_interval)
+        }
 
         hyve.stop()
 
@@ -359,6 +375,7 @@
 
     // Manually re-classify items as needed, check for dupes, send to callback
     function process(item, callback){
+
         if (item.date != parseInt(item.date,10)){
             var date_obj = new Date(item.date)
             item.date = date_obj.getTime()/1000
@@ -379,16 +396,20 @@
                     if (hyve.queue_enable){
                         enqueue(item)
                     }
-                    try {
-                        callback(item)
-                    } catch(e) {
-                        console.error
-                            ( 'process:'
-                            , e.message
-                            , item.service
-                            , item.id
-                            , item
-                            )
+                    if ( !hyve.sort_interval ){
+                        try {
+                            return//callback(item)
+                        } catch(e) {
+                            console.error
+                                ( 'process:'
+                                , e.message
+                                , item.service
+                                , item.id
+                                , item
+                                )
+                        }
+                    } else {
+                        hyve.sort_queue.push(item)
                     }
                 }
             })
@@ -496,7 +517,9 @@
     hyve.recall_enable = false
     hyve.replenish = replenish
     hyve.queue = {'text':[],'link':[],'video':[],'image':[],'checkin':[]}
+    hyve.sort_queue = []
     hyve.queue_enable = false; // enables queuing; no queue by default
+    hyve.sort_interval = false; // set to milliseconds to sort at set intervals
     hyve.dequeue = dequeue
     hyve.debug = false
     hyve.items_seen = []
@@ -504,6 +527,7 @@
     hyve.callbacks = []
     hyve.links = {}
     hyve.feeds = {}
+    hyve.services = []
 
     // Export hyve for node/browser compatibilty
     if (typeof module !== 'undefined' && module.exports) {
