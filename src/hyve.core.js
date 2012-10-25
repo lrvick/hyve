@@ -96,6 +96,8 @@
 
         if (services.length === 0) throw "cannot stream; services is empty"
 
+        hyve.stop()
+
         if (hyve.sort_interval){
             hyve.sort_interval_lock = setInterval(function(){
                 hyve.sort_queue.sort(function(a,b){
@@ -109,7 +111,6 @@
             },hyve.sort_interval)
         }
 
-        hyve.stop()
 
         services.forEach(function(service){
             // set the orig_url to the services feed_url for this method
