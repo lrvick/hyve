@@ -205,6 +205,9 @@
             if (hyve.feeds[service].token_update_lock){
                 clearInterval(hyve.feeds[service].token_update_lock)
             }
+            if (hyve.sort_interval_lock){
+                clearInterval(hyve.sort_interval_lock)
+            }
         })
     }
 
