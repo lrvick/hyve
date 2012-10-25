@@ -109,8 +109,6 @@
                         if (!this.items_seen[id]) {
                            this.items_seen[id] = true
 
-                            console.log('TWITTA',item)
-
                             hyve.process({
                                 'service': 'twitter',
                                 'type': 'text',
