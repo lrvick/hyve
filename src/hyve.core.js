@@ -96,9 +96,7 @@
 
         // use services that contain proper method
         services = []
-        check_services =
-            custom_services || hyve.services || Object.keys(hyve.feeds)
-        hyve.services = check_services
+        check_services = custom_services || Object.keys(hyve.feeds)
 
         check_services.forEach(function(service){
             if (method in oc(hyve.feeds[service.toLowerCase()].methods)){
@@ -543,7 +541,6 @@
     hyve.callbacks = []
     hyve.links = {}
     hyve.feeds = {}
-    hyve.services = []
 
     // Export hyve for node/browser compatibilty
     if (typeof module !== 'undefined' && module.exports) {
