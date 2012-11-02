@@ -106,6 +106,11 @@
 
         if (services.length === 0) throw "cannot stream; services is empty"
 
+        if (hyve.debug === true){
+            console.log('hyve: method:',method)
+            console.log('hyve: services:',services)
+        }
+
         hyve.stop()
 
         if (hyve.sort_interval){
@@ -455,9 +460,9 @@
             s.type = 'text/javascript'
             s.async = true
             s.src = url
-            if (hyve.debug === true){
-                console.log('hyve: JSOP Request:',url)
-            }
+
+            if (hyve.debug === true) console.log('hyve: JSOP Request:',url)
+
             var wrap_callback = function(){
                 cleanup(s)
                 return callback.apply(this,arguments)
