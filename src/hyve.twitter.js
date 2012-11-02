@@ -183,8 +183,6 @@
                         }, callback)
                     }, this)
 
-                    //popular is called once, clear interval
-                    hyve.stop(['twitter'])
                 }
             }
         }

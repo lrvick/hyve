@@ -77,6 +77,18 @@
        )
     }
 
+    // Sort all items in sort_queue and output them through provided callback
+    function sortout(callback){
+        hyve.sort_queue.sort(function(a,b){
+            return a['date'] - b['date']
+        })
+        hyve.sort_queue.forEach(function(item){
+            callback(item)
+            idx = hyve.sort_queue.indexOf(item)
+            if (idx != -1) hyve.sort_queue.splice(idx, 1)
+        })
+    }
+
     // Pulls data from several streams and handles all with given callback
     function stream(query, callback, custom_services) {
         callback = callback || function(){}
@@ -99,18 +111,16 @@
         hyve.stop()
 
         if (hyve.sort_interval){
-            hyve.sort_interval_lock = setInterval(function(){
-                hyve.sort_queue.sort(function(a,b){
-                    return a['date'] - b['date']
-                })
-                hyve.sort_queue.forEach(function(item){
-                    callback(item)
-                    idx = hyve.sort_queue.indexOf(item)
-                    if (idx != -1) hyve.sort_queue.splice(idx, 1)
-                })
-            },hyve.sort_interval)
+            if (hyve.method == 'popular'){
+                setTimeout(function(){
+                    sortout(callback)
+                },hyve.sort_interval)
+            } else {
+                hyve.sort_interval_lock = setInterval(function(){
+                    sortout(callback)
+                },hyve.sort_interval)
+            }
         }
-
 
         services.forEach(function(service){
             // set the orig_url to the services feed_url for this method
@@ -166,9 +176,11 @@
                 }
             }
 
-            hyve.feeds[service].lock = setInterval(function(){
-                runFetch()
-            }, interval)
+            if (hyve.method != 'popular'){
+                hyve.feeds[service].lock = setInterval(function(){
+                    runFetch()
+                }, interval)
+            }
         })
     }
 
@@ -402,7 +414,7 @@
                     }
                     if ( !hyve.sort_interval ){
                         try {
-                            return//callback(item)
+                            callback(item)
                         } catch(e) {
                             console.error
                                 ( 'process:'

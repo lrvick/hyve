@@ -139,7 +139,6 @@
 
                     }, this)
                 }
-                hyve.stop(['youtube'])
 
             }
         }

@@ -102,7 +102,6 @@
                     }, callback)
 
                 }, this)
-                hyve.stop(['plus'])
             }
         }
     }

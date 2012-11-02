@@ -108,43 +108,55 @@
                 })
 
                 sorted_items.forEach(function(item) {
-                    if (item.message){
-                        var links = []
-                        if (item.link){
-                            links = [item.link]
-                        }
-
-                        var type = 'text'
-                        var thumbnail = undefined
-                        if (item.picture) {
-                            thumbnail = item.picture
-                            type = 'image'
-                        }
-
-                        hyve.process({
-                            'service' : 'facebook',
-                            'type' : type,
-                            'query' : query,
-                            'user' : {
-                                'id' : item.from.id,
-                                'name' : item.from.name,
-                                'avatar' : 'http://graph.facebook.com/'+
-                                           item.from.id+'/picture',
-                                'profile' : "http://facebook.com/"+item.from.id
-                            },
-                            'id' : item.id,
-                            'links': links,
-                            'date' : item.created_time,
-                            'text' : item.message,
-                            'thumbnail': thumbnail,
-                            'source' : 'http://facebook.com/'+item.from.id,
-                            'weight' : item.weight
-                           },callback)
+                    var type = 'text'
+                    var thumbnail = undefined
+                    var text = undefined
+                    if (item.type == 'photo') {
+                        thumbnail = item.picture.replace('_s','_n')
+                        text = item.message
+                        type = 'image'
                     }
+
+                    if (item.message) {
+                        text = item.message
+                    } else if (item.description){
+                        text = item.description
+                    } else if (item.name){
+                        text = item.name
+                    }
+
+                    var links = []
+                    if (item.link){
+                        links = [item.link]
+                    }
+                    var weight = 1
+                    var likes = ''
+                    if (item.likes) {
+                        likes = item.likes.count
+                        weight = likes
+                    }
+
+                    hyve.process({
+                        'service' : 'facebook',
+                        'type' : type,
+                        'query' : query,
+                        'user' : {
+                            'id' : item.from.id,
+                            'name' : item.from.name,
+                            'avatar' : 'http://graph.facebook.com/'+
+                                       item.from.id+'/picture',
+                            'profile' : "http://facebook.com/"+item.from.id
+                        },
+                        'id' : item.id,
+                        'links': links,
+                        'date' : item.created_time,
+                        'text' : item.message,
+                        'thumbnail': thumbnail,
+                        'source' : 'http://facebook.com/'+item.from.id,
+                        'weight' : item.weight
+                    },callback)
                 },this)
 
-                // popular is only called once, stop clears interval
-                hyve.stop(['facebook'])
             }
         }
     }

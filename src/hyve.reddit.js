@@ -73,9 +73,6 @@
                         'weight' : weight
                     },callback)
                 })
-                if (hyve.method == 'popular') {
-                    hyve.stop(['reddit'])
-                }
             }
         }
     }
