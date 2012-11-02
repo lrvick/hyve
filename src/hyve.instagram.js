@@ -13,7 +13,7 @@
         format_url : function(query){
             var since_arg = ''
             if (this.since){
-                since_arg = '&since='+this.since
+                since_arg = '&min_id='+this.since
             }
             return {
                       query: query
@@ -24,6 +24,8 @@
         parsers : {
             friends: function(data, query, callback){
                 if (data.data.length > 0){
+                    hyve.feeds.instagram.since = data.data[0].id
+
                     data.data.forEach(function(item){
 
                         var text = undefined;
