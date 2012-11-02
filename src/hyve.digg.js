@@ -3,7 +3,8 @@
     var hyve = (typeof require == 'function' && !(typeof define == 'function' && define.amd)) ? require('../src/hyve.core.js') : root.hyve
 
     hyve.feeds['digg'] = {
-        methods : ['search'],
+        //methods : ['search'], disable until new digg API is implimented
+        methods : [],
         interval : 15000,
         min_dates : {},
         feed_urls : {
