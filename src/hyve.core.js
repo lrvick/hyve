@@ -89,12 +89,8 @@
         })
     }
 
-    // Pulls data from several streams and handles all with given callback
-    function stream(query, callback, custom_services) {
-        callback = callback || function(){}
-        method = hyve.method
-
-        // use services that contain proper method
+    // return an array of services that support a given method
+    function supported(method,custom_services){
         services = []
         check_services = custom_services || Object.keys(hyve.feeds)
 
@@ -103,6 +99,15 @@
                services.push(service.toLowerCase())
            }
         })
+        return services
+    }
+
+    // Pulls data from several streams and handles all with given callback
+    function stream(query, callback, custom_services) {
+        callback = callback || function(){}
+        method = hyve.method
+
+        services = supported(method,custom_services)
 
         if (services.length === 0) throw "cannot stream; services is empty"
 
@@ -529,6 +534,7 @@
     hyve.callback = '' // set by the calling stream
     hyve.stop = stop
     hyve.process = process
+    hyve.supported = supported
     hyve.format = format
     hyve.fetch = fetch
     hyve.fetch_proxy = fetch_proxy // override with your own proxy function
