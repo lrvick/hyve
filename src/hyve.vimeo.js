@@ -23,7 +23,7 @@
         },
         parsers: {
             friends: function(data, query, callback){
-                if (data.length > 0) {
+                if (data && data.length > 0) {
                     data.forEach(function(item){
                         var weight = 1
                         var likes = undefined

@@ -23,7 +23,7 @@
         },
         parsers : {
             friends: function(data, query, callback){
-                if (data.data.length > 0){
+                if (data && data.data && data.data.length > 0){
                     hyve.feeds.instagram.since = data.data[0].id
 
                     data.data.forEach(function(item){

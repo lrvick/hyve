@@ -102,7 +102,7 @@
                  if (!this.items_seen){
                     this.items_seen = {}
                 }
-                if (data.photos != undefined){
+                if (data && data.photos){
                     var items = data.photos.photo
                     items.forEach(function(item) {
                         if (!this.items_seen[item.id]) {
