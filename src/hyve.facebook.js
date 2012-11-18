@@ -83,7 +83,7 @@
                     },this)
                     }
                 } else {
-                    console.error('facebook error',data.error.message,this.access_token)
+                    console.error('facebook error',data.error.message)
                 }
             },
             friends: function(data, query, callback) {
