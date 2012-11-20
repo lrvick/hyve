@@ -85,7 +85,7 @@
                                 'links' : links,
                                 'source' : 'http://twitter.com/'+
                                            item.from_user+
-                                           '/status/'+item.id,
+                                           '/status/'+item.id_str,
                                 'weight' : weight
                             },callback)
                         }
@@ -178,7 +178,7 @@
                             'links' : item.links,
                             'source' : 'http://twitter.com/'+
                                        item.from_user+
-                                       '/status/'+item.id,
+                                       '/status/'+item.id_str,
                             'weight' : item.weight
                         }, callback)
                     }, this)
