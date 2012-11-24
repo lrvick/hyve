@@ -3,12 +3,12 @@
     var hyve = (typeof require == 'function' && !(typeof define == 'function' && define.amd)) ? require('../src/hyve.core.js') : root.hyve
 
     hyve.feeds['foursquare'] = {
-        methods : ['search'],
+        methods : ['geo'],
         interval : 15000,
         client_id: '',
         client_secret: '',
         feed_urls :{
-            search: 'https://api.foursquare.com/v2/venues/search?query={{query}}{{#&ll=#latlog}}&limit=20{{#&client_id=#client_id}}{{#&client_secret=#client_secret}}{{#&callback=#callback}}'
+            geo: 'https://api.foursquare.com/v2/venues/search?query={{query}}{{#&ll=#latlog}}&limit=20{{#&client_id=#client_id}}{{#&client_secret=#client_secret}}{{#&callback=#callback}}'
         },
         fetch_url : function(service,query,callback){
             if (navigator.geolocation){
