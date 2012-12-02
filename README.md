@@ -141,6 +141,9 @@ hyve.feeds.twitter.oauth_consumer_key = 'oauth_consumer_key'
 hyve.feeds.twitter.oauth_signature = 'oauth_signature'
 hyve.feeds.twitter.oauth_nonce = 'oauth_nonce'
 hyve.feeds.twitter.oauth_timestamp = 'oauth_timestamp'
+
+// Instagram (Oauth2)
+hyve.feeds.instagram.access_token = 'access_token'
 ```
 
 ### Commands ###
