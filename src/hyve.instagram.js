@@ -29,7 +29,13 @@
 
 function parseData(data, query, callback){
     if (data && data.data && data.data.length > 0){
-        hyve.feeds.instagram.since = data.pagination.next_min_id
+        if(data.pagination && data.pagination.next_min_id) {
+            since = data.pagination.next_min_id
+        } else {
+            since = data.data[0].id
+        }
+
+        hyve.feeds.instagram.since = since
 
         data.data.forEach(function(item){
 
